@@ -1,0 +1,17 @@
+{
+  "name": "todo-stack-showcase",
+  "private": true,
+  "version": "0.0.0",
+  "packageManager": "pnpm@11.22.0",
+  "scripts": {
+    "dev": "pnpm --filter BE dev",
+    "db:up": "pnpm --filter BE db:up",
+    "db:down": "pnpm --filter BE db:down",
+    "migrate": "pnpm --filter BE migrate",
+    "generate": "pnpm --filter BE generate",
+    "build": "pnpm -r build"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
