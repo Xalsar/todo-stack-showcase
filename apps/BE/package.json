@@ -11,6 +11,7 @@
     "db:down": "podman-compose -f compose.yaml down",
     "migrate": "prisma migrate dev",
     "generate": "prisma generate",
+    "studio": "prisma studio",
     "openapi": "tsx src/scripts/generate-openapi.ts",
     "seed": "tsx --env-file=.env src/scripts/seed.ts"
   },
