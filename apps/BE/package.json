@@ -13,6 +13,7 @@
     "generate": "prisma generate",
     "studio": "prisma studio",
     "openapi": "tsx src/scripts/generate-openapi.ts",
+    "client:generate": "orval",
     "seed": "tsx --env-file=.env src/scripts/seed.ts"
   },
   "dependencies": {

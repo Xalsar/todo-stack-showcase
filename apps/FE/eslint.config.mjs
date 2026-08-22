@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // orval-generated SWR client (see apps/BE/orval.config.ts):
+    "src/lib/api/generated/**",
   ]),
 ]);
 
