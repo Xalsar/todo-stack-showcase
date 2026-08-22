@@ -1,8 +1,9 @@
 # Agent Guide
 
 pnpm monorepo (`apps/*`, `packages/*`). `apps/BE/` is Express 5 + Prisma 6 todo CRUD; `apps/FE/` is
-Next.js 16 + shadcn/ui (Tailwind v4, Base UI primitives, preset `b0`). `packages/api-client/` is planned,
-not created yet.
+Next.js 16 + shadcn/ui (Tailwind v4, Base UI primitives, preset `b0`) and uses SWR for client-side data
+fetching. `packages/api-client/` is planned but not created yet: it will be an orval-generated API client
+from the committed `apps/BE/openapi.json`.
 
 ## Setup & commands
 
@@ -24,7 +25,8 @@ not created yet.
   to 6 for the same reason.
 - API contract shapes live in zod schemas (`apps/BE/src/schemas/`) plus `registry.registerPath` calls in
   route files (e.g. `apps/BE/src/routes/todos.ts`). After any contract change run `pnpm openapi`; FE client
-  codegen from the spec isn't wired up yet.
+  codegen from the spec isn't wired up yet — orval (`packages/api-client/`, not created) is the intended
+  generator once it exists.
 - `src/scripts/generate-openapi.ts` imports route modules for their registration side effects — new route
   files must be imported there or they won't appear in the spec.
 
