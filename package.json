@@ -9,6 +9,7 @@
     "db:down": "pnpm --filter BE db:down",
     "migrate": "pnpm --filter BE migrate",
     "generate": "pnpm --filter BE generate",
+    "openapi": "pnpm --filter BE openapi",
     "build": "pnpm -r build"
   },
   "engines": {

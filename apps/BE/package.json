@@ -10,7 +10,8 @@
     "db:up": "podman-compose -f compose.yaml up -d",
     "db:down": "podman-compose -f compose.yaml down",
     "migrate": "prisma migrate dev",
-    "generate": "prisma generate"
+    "generate": "prisma generate",
+    "openapi": "tsx src/scripts/generate-openapi.ts"
   },
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "^8.0.0",

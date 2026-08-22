@@ -1,25 +1,31 @@
 # Agent Guide
 
-This repository is a pnpm monorepo:
+pnpm monorepo (`apps/*`, `packages/*`). Only `apps/BE/` exists today: Express 5 + Prisma 6 todo CRUD.
+`apps/FE/` and `packages/api-client/` are planned, not created yet.
 
-- `apps/BE/` — Express + Prisma + zod-to-openapi backend (todo CRUD).
-- `apps/FE/` — (planned, not yet created) frontend that consumes `packages/api-client`.
-- `packages/api-client/` — (planned) generated fetch client. Treat as build output. Do not hand-edit.
+## Setup & commands
 
-## Working scope
+- `.nvmrc` pins Node 24 (`nvm use`); pnpm version is enforced via `packageManager`.
+- Copy `.env.example` to `apps/BE/.env` first — `dev`/`start` use tsx `--env-file=.env` and crash without it.
+  Local compose URL: `postgresql://todos:devpass@localhost:5432/todos`
+- `pnpm db:up` / `db:down` — Postgres 17 in podman (container `todo-pg`, port 5432). Required before migrate/dev.
+- `pnpm migrate` — `prisma migrate dev` (runs generate internally). `pnpm generate` — Prisma client codegen only.
+- `pnpm openapi` — regenerate the committed `apps/BE/openapi.json` from zod schemas.
+- No tests or linters exist. Verify changes with `pnpm build` (tsc, strict).
 
-- For BE work, stay inside `apps/BE/`. Touch `prisma/schema.prisma` for data changes; `src/` for app code.
-- Contract changes (request/response shapes): update zod schemas in `apps/BE/src/schemas/`, then run `pnpm generate` to refresh the OpenAPI spec and (eventually) the FE client.
+## Gotchas
 
-## Toolchain
-
-- Node v24 LTS via nvm
-- pnpm 11 (workspace root)
-- Postgres in podman via podman-compose (`pnpm db:up` / `pnpm db:down`)
-- Express 5, zod 4, `@asteasolutions/zod-to-openapi`, Prisma 6
+- Run the Prisma CLI through workspace scripts only (`pnpm migrate`, `pnpm generate`, or
+  `pnpm --filter BE exec prisma ...`). Never `npx`/`pnpm dlx prisma`: it fetches v7, whose schema
+  validator rejects this repo's v6-style datasource url. `.vscode/settings.json` pins the IDE extension
+  to 6 for the same reason.
+- API contract shapes live in zod schemas (`apps/BE/src/schemas/`) plus `registry.registerPath` calls in
+  route files (e.g. `apps/BE/src/routes/todos.ts`). After any contract change run `pnpm openapi`; FE client
+  codegen from the spec isn't wired up yet.
+- `src/scripts/generate-openapi.ts` imports route modules for their registration side effects — new route
+  files must be imported there or they won't appear in the spec.
 
 ## Conventions
 
-- Imports use NodeNext module resolution: relative imports of local TS files need explicit `.js` extensions.
-- `prisma generate` must run after schema changes; it's a no-op if you run `pnpm migrate` (which calls generate internally).
-- TypeScript strict mode is on; no implicit any, exhaustive reasoning required.
+- ESM + NodeNext module resolution: relative imports of local TS files need explicit `.js` extensions.
+- tsconfig enables `noUncheckedIndexedAccess`: indexed access returns `T | undefined`.
