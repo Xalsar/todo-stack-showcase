@@ -1,7 +1,8 @@
 # Agent Guide
 
-pnpm monorepo (`apps/*`, `packages/*`). Only `apps/BE/` exists today: Express 5 + Prisma 6 todo CRUD.
-`apps/FE/` and `packages/api-client/` are planned, not created yet.
+pnpm monorepo (`apps/*`, `packages/*`). `apps/BE/` is Express 5 + Prisma 6 todo CRUD; `apps/FE/` is
+Next.js 16 + shadcn/ui (Tailwind v4, Base UI primitives, preset `b0`). `packages/api-client/` is planned,
+not created yet.
 
 ## Setup & commands
 
@@ -11,7 +12,9 @@ pnpm monorepo (`apps/*`, `packages/*`). Only `apps/BE/` exists today: Express 5 
 - `pnpm db:up` / `db:down` — Postgres 17 in podman (container `todo-pg`, port 5432). Required before migrate/dev.
 - `pnpm migrate` — `prisma migrate dev` (runs generate internally). `pnpm generate` — Prisma client codegen only.
 - `pnpm openapi` — regenerate the committed `apps/BE/openapi.json` from zod schemas.
-- No tests or linters exist. Verify changes with `pnpm build` (tsc, strict).
+- `pnpm fe:dev` — Next.js dev server for FE (no env file needed).
+- No tests exist. Verify changes with `pnpm build` (BE: tsc strict; FE: `next build`, includes typecheck).
+  FE also has `lint` (eslint) / `typecheck` scripts; run via `pnpm --filter FE <script>`.
 
 ## Gotchas
 
