@@ -14,12 +14,12 @@ import type {
   Todo
 } from './model';
 
-import { todoFetch } from '../fetcher.js';
+import { todoFetch } from '../fetcher';
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
 
-export const getGetTodosUrl = () => {
+ export const getGetTodosUrl = () => {
 
 
 
@@ -27,17 +27,16 @@ export const getGetTodosUrl = () => {
   return `/todos`
 }
 
-export const getTodos = async (options?: Parameters<typeof todoFetch>[1]): Promise<Todo[]> => {
+export const getTodos = async ( options?: Parameters<typeof todoFetch>[1]): Promise<Todo[]> => {
 
   return todoFetch<Todo[]>(getGetTodosUrl(),
-    {
-      ...options,
-      method: 'GET'
+  {
+    ...options,
+    method: 'GET'
 
 
-    }
-  );
-}
+  }
+);}
 
 
 
@@ -47,9 +46,9 @@ export const getGetTodosKey = () => [`/todos`] as const;
 export type GetTodosQueryResult = NonNullable<Awaited<ReturnType<typeof getTodos>>>
 
 export const useGetTodos = <TError = unknown>(
-  options?: { swr?: SWRConfiguration<Awaited<ReturnType<typeof getTodos>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof todoFetch> }
+   options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getTodos>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof todoFetch> }
 ) => {
-  const { swr: swrOptions, request: requestOptions } = options ?? {}
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
 
   const isEnabled = swrOptions?.enabled !== false
   const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetTodosKey() : null);
