@@ -54,7 +54,7 @@ function TodosList() {
           </EmptyMedia>
           <EmptyTitle>No todos yet</EmptyTitle>
           <EmptyDescription>
-            Create one through the API and it will show up here.
+            Use the field above to add your first one.
           </EmptyDescription>
         </EmptyHeader>
       </Empty>
