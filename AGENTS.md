@@ -15,7 +15,8 @@ fetching. An orval-generated SWR client from the committed `apps/BE/openapi.json
 - `pnpm be:openapi` — regenerate the committed `apps/BE/openapi.json` from zod schemas.
 - `pnpm be:api-client` — regenerate the FE SWR client (`apps/FE/src/lib/api/generated/`) from that spec via
   orval (config: `apps/BE/orval.config.ts`; hand-written fetcher: `apps/FE/src/lib/api/fetcher.ts`).
-- `pnpm fe:dev` — Next.js dev server for FE (no env file needed).
+- `pnpm dev` — BE + FE dev servers in parallel (still needs Postgres up and `apps/BE/.env` first; Ctrl+C stops both).
+- `pnpm be:dev` / `fe:dev` — run one side only (`fe:dev`: Next.js dev server, no env file needed).
 - No tests exist. Verify changes with `pnpm build` (BE: tsc strict; FE: `next build`, includes typecheck).
   FE also has `lint` (eslint) / `typecheck` scripts; run via `pnpm --filter FE <script>`.
 
