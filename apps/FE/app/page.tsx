@@ -1,6 +1,6 @@
-import { AddTodoForm } from "@/components/add-todo-form"
-import { ThemeToggle } from "@/components/theme-toggle"
-import { TodosList } from "@/components/todos-list"
+import { AddTodoForm } from "@/containers/add-todo-form"
+import { ThemeToggle } from "@/containers/theme-toggle"
+import { TodosList } from "@/containers/todos-list/todos-list"
 
 export default function Page() {
   return (
