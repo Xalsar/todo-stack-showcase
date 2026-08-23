@@ -16,4 +16,12 @@ export const TodoSchema = registry.register(
   }),
 );
 
+export const CreateTodoSchema = registry.register(
+  'CreateTodo',
+  z.object({
+    title: z.string().min(1),
+  }),
+);
+
 export type TodoDto = z.infer<typeof TodoSchema>;
+export type CreateTodoDto = z.infer<typeof CreateTodoSchema>;

@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 
-import type { TodoDto } from '../schemas/todo.js';
+import type { CreateTodoDto, TodoDto } from '../schemas/todo.js';
 
 const prisma = new PrismaClient();
 
@@ -14,4 +14,16 @@ export async function listTodos(): Promise<TodoDto[]> {
     createdAt: todo.createdAt.toISOString(),
     updatedAt: todo.updatedAt.toISOString(),
   }));
+}
+
+export async function createTodo(input: CreateTodoDto): Promise<TodoDto> {
+  const todo = await prisma.todo.create({ data: { title: input.title } });
+
+  return {
+    id: todo.id,
+    title: todo.title,
+    done: todo.done,
+    createdAt: todo.createdAt.toISOString(),
+    updatedAt: todo.updatedAt.toISOString(),
+  };
 }

@@ -5,5 +5,7 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export * from './createTodo';
-export * from './todo';
+export interface CreateTodo {
+  /** @minLength 1 */
+  title: string;
+}
