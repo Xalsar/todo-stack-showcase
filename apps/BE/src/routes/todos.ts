@@ -1,8 +1,14 @@
 import { Router } from 'express';
 import { z } from 'zod';
 
-import { createTodo, listTodos } from '../services/todoService.js';
-import { CreateTodoSchema, registry, TodoSchema } from '../schemas/todo.js';
+import { createTodo, listTodos, setTodoDone } from '../services/todoService.js';
+import {
+  CreateTodoSchema,
+  registry,
+  SetTodoDoneSchema,
+  TodoIdParamsSchema,
+  TodoSchema,
+} from '../schemas/todo.js';
 
 registry.registerPath({
   method: 'get',
@@ -45,6 +51,36 @@ registry.registerPath({
   },
 });
 
+registry.registerPath({
+  method: 'patch',
+  path: '/todos/{id}/done',
+  request: {
+    params: TodoIdParamsSchema,
+    body: {
+      description: 'Done state to set',
+      required: true,
+      content: {
+        'application/json': {
+          schema: SetTodoDoneSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: 'Updated todo',
+      content: {
+        'application/json': {
+          schema: TodoSchema,
+        },
+      },
+    },
+    404: {
+      description: 'Todo not found',
+    },
+  },
+});
+
 export const todosRouter = Router();
 
 todosRouter.get('/', async (_req, res) => {
@@ -61,4 +97,23 @@ todosRouter.post('/', async (req, res) => {
 
   const todo = await createTodo(parsed.data);
   res.status(201).json(todo);
+});
+
+todosRouter.patch('/:id/done', async (req, res) => {
+  const params = TodoIdParamsSchema.safeParse(req.params);
+  const body = SetTodoDoneSchema.safeParse(req.body);
+  if (!params.success || !body.success) {
+    res.status(400).json({
+      errors: [...(params.success ? [] : params.error.issues), ...(body.success ? [] : body.error.issues)],
+    });
+    return;
+  }
+
+  const todo = await setTodoDone(params.data.id, body.data.done);
+  if (!todo) {
+    res.status(404).json({ error: 'Todo not found' });
+    return;
+  }
+
+  res.json(todo);
 });

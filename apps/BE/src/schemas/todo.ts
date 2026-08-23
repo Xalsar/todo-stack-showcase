@@ -23,5 +23,21 @@ export const CreateTodoSchema = registry.register(
   }),
 );
 
+export const SetTodoDoneSchema = registry.register(
+  'SetTodoDone',
+  z.object({
+    done: z.boolean(),
+  }),
+);
+
+export const TodoIdParamsSchema = registry.register(
+  'TodoIdParams',
+  z.object({
+    id: z.uuid(),
+  }),
+);
+
 export type TodoDto = z.infer<typeof TodoSchema>;
 export type CreateTodoDto = z.infer<typeof CreateTodoSchema>;
+export type SetTodoDoneDto = z.infer<typeof SetTodoDoneSchema>;
+export type TodoIdParams = z.infer<typeof TodoIdParamsSchema>;

@@ -17,6 +17,7 @@ import type {
 
 import type {
   CreateTodo,
+  SetTodoDone,
   Todo
 } from './model';
 
@@ -107,6 +108,55 @@ export const usePostTodos = <TError = unknown>(
 
   const swrKey = swrOptions?.swrKey ?? getPostTodosMutationKey();
   const swrFn = getPostTodosMutationFetcher(requestOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export const getPatchTodosIdDoneUrl = (id: string,) => {
+
+
+
+
+  return `/todos/${id}/done`
+}
+
+export const patchTodosIdDone = async (id: string,
+    setTodoDone: SetTodoDone, options?: Parameters<typeof todoFetch>[1]): Promise<Todo> => {
+
+  return todoFetch<Todo>(getPatchTodosIdDoneUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(setTodoDone)
+  }
+);}
+
+
+
+
+export const getPatchTodosIdDoneMutationFetcher = (id: string, options?: SecondParameter<typeof todoFetch>) => {
+  return (_: Key, { arg }: { arg: SetTodoDone }) => {
+    return patchTodosIdDone(id, arg, options);
+  }
+}
+export const getPatchTodosIdDoneMutationKey = (id: string,) => [`/todos/${id}/done`] as const;
+
+export type PatchTodosIdDoneMutationResult = NonNullable<Awaited<ReturnType<typeof patchTodosIdDone>>>
+
+export const usePatchTodosIdDone = <TError = void>(
+  id: string, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof patchTodosIdDone>>, TError, Key, SetTodoDone, Awaited<ReturnType<typeof patchTodosIdDone>>> & { swrKey?: string }, request?: SecondParameter<typeof todoFetch>}
+) => {
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getPatchTodosIdDoneMutationKey(id);
+  const swrFn = getPatchTodosIdDoneMutationFetcher(id, requestOptions);
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
