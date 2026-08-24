@@ -75,7 +75,7 @@ function TodoItem({
               }
             }}
             className={cn(
-              "-mx-1 cursor-pointer rounded-sm px-1 hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none",
+              "-mx-1 w-full cursor-pointer rounded-sm px-1 hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none",
               todo.done && "font-normal text-muted-foreground line-through"
             )}
           >
