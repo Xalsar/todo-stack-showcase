@@ -38,6 +38,28 @@ export async function setTodoDone(
   }
 }
 
+export async function updateTodoTitle(
+  id: string,
+  title: string
+): Promise<TodoDto | null> {
+  try {
+    const todo = await prisma.todo.update({
+      where: { id },
+      data: { title },
+    })
+
+    return toDto(todo)
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2025"
+    ) {
+      return null
+    }
+    throw error
+  }
+}
+
 export async function deleteTodo(id: string): Promise<boolean> {
   try {
     await prisma.todo.delete({ where: { id } })

@@ -18,12 +18,14 @@ import { ApiError } from "@/src/lib/api/fetcher"
 import {
   useGetTodos,
   patchTodosIdDone,
+  patchTodosIdTitle,
   deleteTodosId,
 } from "@/src/lib/api/generated/client"
 
 function TodosList() {
   const { data: todos, error, isLoading, mutate } = useGetTodos()
   const [mutatingIds, setMutatingIds] = useState<Set<string>>(() => new Set())
+  const [editingId, setEditingId] = useState<string | null>(null)
 
   const setTodoDone = (id: string, done: boolean) =>
     mutate(
@@ -54,6 +56,37 @@ function TodosList() {
     mutate((current) => current?.filter((todo) => todo.id !== id), {
       revalidate: false,
     })
+
+  const setTodoTitle = (id: string, title: string) =>
+    mutate(
+      (current) =>
+        current?.map((todo) => (todo.id === id ? { ...todo, title } : todo)),
+      { revalidate: false }
+    )
+
+  const onUpdateTitle = async (id: string, title: string) => {
+    const current = todos?.find((todo) => todo.id === id)
+    if (!current || title === current.title) {
+      setEditingId(null)
+      return
+    }
+    try {
+      setMutatingIds((current) => new Set(current).add(id))
+      await setTodoTitle(id, title)
+      const updated = await patchTodosIdTitle(id, { title })
+      await setTodoTitle(id, updated.title)
+      setEditingId(null)
+    } catch {
+      await setTodoTitle(id, current.title)
+      toast.error("Failed to update todo. Is the backend running?")
+    } finally {
+      setMutatingIds((current) => {
+        const next = new Set(current)
+        next.delete(id)
+        return next
+      })
+    }
+  }
 
   const onDelete = async (id: string) => {
     const removed = todos?.find((todo) => todo.id === id)
@@ -116,8 +149,12 @@ function TodosList() {
           key={todo.id}
           todo={todo}
           isMutating={mutatingIds.has(todo.id)}
+          editing={editingId === todo.id}
           onToggle={onToggle}
           onDelete={onDelete}
+          onStartEdit={() => setEditingId(todo.id)}
+          onCancelEdit={() => setEditingId(null)}
+          onSubmitEdit={(title) => onUpdateTitle(todo.id, title)}
         />
       ))}
     </ItemGroup>

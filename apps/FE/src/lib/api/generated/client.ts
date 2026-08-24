@@ -10,7 +10,7 @@ import type { Arguments, Key, SWRConfiguration } from "swr"
 import useSWRMutation from "swr/mutation"
 import type { SWRMutationConfiguration } from "swr/mutation"
 
-import type { CreateTodo, SetTodoDone, Todo } from "./model"
+import type { CreateTodo, SetTodoDone, Todo, UpdateTodoTitle } from "./model"
 
 import { todoFetch } from "../fetcher"
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
@@ -161,6 +161,64 @@ export const usePatchTodosIdDone = <TError = void>(
 
   const swrKey = swrOptions?.swrKey ?? getPatchTodosIdDoneMutationKey(id)
   const swrFn = getPatchTodosIdDoneMutationFetcher(id, requestOptions)
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query,
+  }
+}
+
+export const getPatchTodosIdTitleUrl = (id: string) => {
+  return `/todos/${id}/title`
+}
+
+export const patchTodosIdTitle = async (
+  id: string,
+  updateTodoTitle: UpdateTodoTitle,
+  options?: Parameters<typeof todoFetch>[1]
+): Promise<Todo> => {
+  return todoFetch<Todo>(getPatchTodosIdTitleUrl(id), {
+    ...options,
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(updateTodoTitle),
+  })
+}
+
+export const getPatchTodosIdTitleMutationFetcher = (
+  id: string,
+  options?: SecondParameter<typeof todoFetch>
+) => {
+  return (_: Key, { arg }: { arg: UpdateTodoTitle }) => {
+    return patchTodosIdTitle(id, arg, options)
+  }
+}
+export const getPatchTodosIdTitleMutationKey = (id: string) =>
+  [`/todos/${id}/title`] as const
+
+export type PatchTodosIdTitleMutationResult = NonNullable<
+  Awaited<ReturnType<typeof patchTodosIdTitle>>
+>
+
+export const usePatchTodosIdTitle = <TError = void>(
+  id: string,
+  options?: {
+    swr?: SWRMutationConfiguration<
+      Awaited<ReturnType<typeof patchTodosIdTitle>>,
+      TError,
+      Key,
+      UpdateTodoTitle,
+      Awaited<ReturnType<typeof patchTodosIdTitle>>
+    > & { swrKey?: string }
+    request?: SecondParameter<typeof todoFetch>
+  }
+) => {
+  const { swr: swrOptions, request: requestOptions } = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getPatchTodosIdTitleMutationKey(id)
+  const swrFn = getPatchTodosIdTitleMutationFetcher(id, requestOptions)
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions)
 

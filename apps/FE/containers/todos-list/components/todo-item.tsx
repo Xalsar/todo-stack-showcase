@@ -1,6 +1,6 @@
 "use client"
 
-import { Check, Circle, Trash2 } from "lucide-react"
+import { Check, Circle, Pencil, Trash2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -10,6 +10,7 @@ import {
   ItemMedia,
   ItemTitle,
 } from "@/components/ui/item"
+import { EditTodoForm } from "@/containers/todos-list/components/edit-todo-form"
 import type { Todo } from "@/src/lib/api/generated/model"
 
 import { cn } from "@/lib/utils"
@@ -17,11 +18,24 @@ import { cn } from "@/lib/utils"
 type TodoItemProps = {
   todo: Todo
   isMutating: boolean
+  editing: boolean
   onToggle: (id: string, done: boolean) => Promise<void>
   onDelete: (id: string) => Promise<void>
+  onStartEdit: () => void
+  onCancelEdit: () => void
+  onSubmitEdit: (title: string) => Promise<void>
 }
 
-function TodoItem({ todo, isMutating, onToggle, onDelete }: TodoItemProps) {
+function TodoItem({
+  todo,
+  isMutating,
+  editing,
+  onToggle,
+  onDelete,
+  onStartEdit,
+  onCancelEdit,
+  onSubmitEdit,
+}: TodoItemProps) {
   return (
     <Item key={todo.id} variant="outline">
       <ItemMedia variant="icon">
@@ -42,26 +56,57 @@ function TodoItem({ todo, isMutating, onToggle, onDelete }: TodoItemProps) {
         </Button>
       </ItemMedia>
       <ItemContent>
-        <ItemTitle
-          className={cn(
-            todo.done && "font-normal text-muted-foreground line-through"
-          )}
-        >
-          {todo.title}
-        </ItemTitle>
+        {editing ? (
+          <EditTodoForm
+            initialTitle={todo.title}
+            isSubmitting={isMutating}
+            onSubmit={(title) => onSubmitEdit(title)}
+            onCancel={onCancelEdit}
+          />
+        ) : (
+          <ItemTitle
+            role="button"
+            tabIndex={0}
+            onClick={onStartEdit}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault()
+                onStartEdit()
+              }
+            }}
+            className={cn(
+              "-mx-1 cursor-pointer rounded-sm px-1 hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none",
+              todo.done && "font-normal text-muted-foreground line-through"
+            )}
+          >
+            {todo.title}
+          </ItemTitle>
+        )}
       </ItemContent>
-      <ItemActions>
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          onClick={() => onDelete(todo.id)}
-          disabled={isMutating}
-          className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive disabled:opacity-100 dark:hover:bg-destructive/20"
-          aria-label="Delete todo"
-        >
-          <Trash2 />
-        </Button>
-      </ItemActions>
+      {editing ? null : (
+        <ItemActions>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={onStartEdit}
+            disabled={isMutating}
+            className="text-muted-foreground disabled:opacity-100"
+            aria-label="Edit todo"
+          >
+            <Pencil />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={() => onDelete(todo.id)}
+            disabled={isMutating}
+            className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive disabled:opacity-100 dark:hover:bg-destructive/20"
+            aria-label="Delete todo"
+          >
+            <Trash2 />
+          </Button>
+        </ItemActions>
+      )}
     </Item>
   )
 }
