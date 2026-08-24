@@ -4,164 +4,168 @@
  * Todo API
  * OpenAPI spec version: 0.1.0
  */
-import useSwr from 'swr';
-import type {
-  Key,
-  SWRConfiguration
-} from 'swr';
+import useSwr from "swr"
+import type { Key, SWRConfiguration } from "swr"
 
-import useSWRMutation from 'swr/mutation';
-import type {
-  SWRMutationConfiguration
-} from 'swr/mutation';
+import useSWRMutation from "swr/mutation"
+import type { SWRMutationConfiguration } from "swr/mutation"
 
-import type {
-  CreateTodo,
-  SetTodoDone,
-  Todo
-} from './model';
+import type { CreateTodo, SetTodoDone, Todo } from "./model"
 
-import { todoFetch } from '../fetcher';
-type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
+import { todoFetch } from "../fetcher"
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 
-
-
- export const getGetTodosUrl = () => {
-
-
-
-
+export const getGetTodosUrl = () => {
   return `/todos`
 }
 
-export const getTodos = async ( options?: Parameters<typeof todoFetch>[1]): Promise<Todo[]> => {
-
-  return todoFetch<Todo[]>(getGetTodosUrl(),
-  {
+export const getTodos = async (
+  options?: Parameters<typeof todoFetch>[1]
+): Promise<Todo[]> => {
+  return todoFetch<Todo[]>(getGetTodosUrl(), {
     ...options,
-    method: 'GET'
+    method: "GET",
+  })
+}
 
+export const getGetTodosKey = () => [`/todos`] as const
 
+export type GetTodosQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getTodos>>
+>
+
+export const useGetTodos = <TError = unknown>(options?: {
+  swr?: SWRConfiguration<Awaited<ReturnType<typeof getTodos>>, TError> & {
+    swrKey?: Key
+    enabled?: boolean
   }
-);}
-
-
-
-
-export const getGetTodosKey = () => [`/todos`] as const;
-
-export type GetTodosQueryResult = NonNullable<Awaited<ReturnType<typeof getTodos>>>
-
-export const useGetTodos = <TError = unknown>(
-   options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getTodos>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof todoFetch> }
-) => {
-  const {swr: swrOptions, request: requestOptions} = options ?? {}
+  request?: SecondParameter<typeof todoFetch>
+}) => {
+  const { swr: swrOptions, request: requestOptions } = options ?? {}
 
   const isEnabled = swrOptions?.enabled !== false
-  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetTodosKey() : null);
+  const swrKey =
+    swrOptions?.swrKey ?? (() => (isEnabled ? getGetTodosKey() : null))
   const swrFn = () => getTodos(requestOptions)
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(
+    swrKey,
+    swrFn,
+    swrOptions
+  )
 
   return {
     swrKey,
-    ...query
+    ...query,
   }
 }
 
 export const getPostTodosUrl = () => {
-
-
-
-
   return `/todos`
 }
 
-export const postTodos = async (createTodo: CreateTodo, options?: Parameters<typeof todoFetch>[1]): Promise<Todo> => {
-
-  return todoFetch<Todo>(getPostTodosUrl(),
-  {
+export const postTodos = async (
+  createTodo: CreateTodo,
+  options?: Parameters<typeof todoFetch>[1]
+): Promise<Todo> => {
+  return todoFetch<Todo>(getPostTodosUrl(), {
     ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(createTodo)
-  }
-);}
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createTodo),
+  })
+}
 
-
-
-
-export const getPostTodosMutationFetcher = ( options?: SecondParameter<typeof todoFetch>) => {
+export const getPostTodosMutationFetcher = (
+  options?: SecondParameter<typeof todoFetch>
+) => {
   return (_: Key, { arg }: { arg: CreateTodo }) => {
-    return postTodos(arg, options);
+    return postTodos(arg, options)
   }
 }
-export const getPostTodosMutationKey = () => [`/todos`] as const;
+export const getPostTodosMutationKey = () => [`/todos`] as const
 
-export type PostTodosMutationResult = NonNullable<Awaited<ReturnType<typeof postTodos>>>
+export type PostTodosMutationResult = NonNullable<
+  Awaited<ReturnType<typeof postTodos>>
+>
 
-export const usePostTodos = <TError = unknown>(
-   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof postTodos>>, TError, Key, CreateTodo, Awaited<ReturnType<typeof postTodos>>> & { swrKey?: string }, request?: SecondParameter<typeof todoFetch>}
-) => {
+export const usePostTodos = <TError = unknown>(options?: {
+  swr?: SWRMutationConfiguration<
+    Awaited<ReturnType<typeof postTodos>>,
+    TError,
+    Key,
+    CreateTodo,
+    Awaited<ReturnType<typeof postTodos>>
+  > & { swrKey?: string }
+  request?: SecondParameter<typeof todoFetch>
+}) => {
+  const { swr: swrOptions, request: requestOptions } = options ?? {}
 
-  const {swr: swrOptions, request: requestOptions} = options ?? {}
-
-  const swrKey = swrOptions?.swrKey ?? getPostTodosMutationKey();
-  const swrFn = getPostTodosMutationFetcher(requestOptions);
+  const swrKey = swrOptions?.swrKey ?? getPostTodosMutationKey()
+  const swrFn = getPostTodosMutationFetcher(requestOptions)
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query
+    ...query,
   }
 }
 
-export const getPatchTodosIdDoneUrl = (id: string,) => {
-
-
-
-
+export const getPatchTodosIdDoneUrl = (id: string) => {
   return `/todos/${id}/done`
 }
 
-export const patchTodosIdDone = async (id: string,
-    setTodoDone: SetTodoDone, options?: Parameters<typeof todoFetch>[1]): Promise<Todo> => {
-
-  return todoFetch<Todo>(getPatchTodosIdDoneUrl(id),
-  {
+export const patchTodosIdDone = async (
+  id: string,
+  setTodoDone: SetTodoDone,
+  options?: Parameters<typeof todoFetch>[1]
+): Promise<Todo> => {
+  return todoFetch<Todo>(getPatchTodosIdDoneUrl(id), {
     ...options,
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(setTodoDone)
-  }
-);}
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(setTodoDone),
+  })
+}
 
-
-
-
-export const getPatchTodosIdDoneMutationFetcher = (id: string, options?: SecondParameter<typeof todoFetch>) => {
+export const getPatchTodosIdDoneMutationFetcher = (
+  id: string,
+  options?: SecondParameter<typeof todoFetch>
+) => {
   return (_: Key, { arg }: { arg: SetTodoDone }) => {
-    return patchTodosIdDone(id, arg, options);
+    return patchTodosIdDone(id, arg, options)
   }
 }
-export const getPatchTodosIdDoneMutationKey = (id: string,) => [`/todos/${id}/done`] as const;
+export const getPatchTodosIdDoneMutationKey = (id: string) =>
+  [`/todos/${id}/done`] as const
 
-export type PatchTodosIdDoneMutationResult = NonNullable<Awaited<ReturnType<typeof patchTodosIdDone>>>
+export type PatchTodosIdDoneMutationResult = NonNullable<
+  Awaited<ReturnType<typeof patchTodosIdDone>>
+>
 
 export const usePatchTodosIdDone = <TError = void>(
-  id: string, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof patchTodosIdDone>>, TError, Key, SetTodoDone, Awaited<ReturnType<typeof patchTodosIdDone>>> & { swrKey?: string }, request?: SecondParameter<typeof todoFetch>}
+  id: string,
+  options?: {
+    swr?: SWRMutationConfiguration<
+      Awaited<ReturnType<typeof patchTodosIdDone>>,
+      TError,
+      Key,
+      SetTodoDone,
+      Awaited<ReturnType<typeof patchTodosIdDone>>
+    > & { swrKey?: string }
+    request?: SecondParameter<typeof todoFetch>
+  }
 ) => {
+  const { swr: swrOptions, request: requestOptions } = options ?? {}
 
-  const {swr: swrOptions, request: requestOptions} = options ?? {}
-
-  const swrKey = swrOptions?.swrKey ?? getPatchTodosIdDoneMutationKey(id);
-  const swrFn = getPatchTodosIdDoneMutationFetcher(id, requestOptions);
+  const swrKey = swrOptions?.swrKey ?? getPatchTodosIdDoneMutationKey(id)
+  const swrFn = getPatchTodosIdDoneMutationFetcher(id, requestOptions)
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query
+    ...query,
   }
 }

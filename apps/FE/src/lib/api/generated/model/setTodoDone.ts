@@ -6,5 +6,5 @@
  */
 
 export interface SetTodoDone {
-  done: boolean;
+  done: boolean
 }

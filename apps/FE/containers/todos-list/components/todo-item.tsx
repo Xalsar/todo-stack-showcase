@@ -4,12 +4,7 @@ import { Check, Circle } from "lucide-react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
-import {
-  Item,
-  ItemContent,
-  ItemMedia,
-  ItemTitle,
-} from "@/components/ui/item"
+import { Item, ItemContent, ItemMedia, ItemTitle } from "@/components/ui/item"
 import { usePatchTodosIdDone } from "@/src/lib/api/generated/client"
 import type { Todo } from "@/src/lib/api/generated/model"
 

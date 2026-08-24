@@ -1,39 +1,39 @@
-import { Router } from 'express';
-import { z } from 'zod';
+import { Router } from "express"
+import { z } from "zod"
 
-import { createTodo, listTodos, setTodoDone } from '../services/todoService.js';
+import { createTodo, listTodos, setTodoDone } from "../services/todoService.js"
 import {
   CreateTodoSchema,
   registry,
   SetTodoDoneSchema,
   TodoIdParamsSchema,
   TodoSchema,
-} from '../schemas/todo.js';
+} from "../schemas/todo.js"
 
 registry.registerPath({
-  method: 'get',
-  path: '/todos',
+  method: "get",
+  path: "/todos",
   responses: {
     200: {
-      description: 'List of todos',
+      description: "List of todos",
       content: {
-        'application/json': {
+        "application/json": {
           schema: z.array(TodoSchema),
         },
       },
     },
   },
-});
+})
 
 registry.registerPath({
-  method: 'post',
-  path: '/todos',
+  method: "post",
+  path: "/todos",
   request: {
     body: {
-      description: 'Todo to create',
+      description: "Todo to create",
       required: true,
       content: {
-        'application/json': {
+        "application/json": {
           schema: CreateTodoSchema,
         },
       },
@@ -41,26 +41,26 @@ registry.registerPath({
   },
   responses: {
     201: {
-      description: 'Created todo',
+      description: "Created todo",
       content: {
-        'application/json': {
+        "application/json": {
           schema: TodoSchema,
         },
       },
     },
   },
-});
+})
 
 registry.registerPath({
-  method: 'patch',
-  path: '/todos/{id}/done',
+  method: "patch",
+  path: "/todos/{id}/done",
   request: {
     params: TodoIdParamsSchema,
     body: {
-      description: 'Done state to set',
+      description: "Done state to set",
       required: true,
       content: {
-        'application/json': {
+        "application/json": {
           schema: SetTodoDoneSchema,
         },
       },
@@ -68,52 +68,55 @@ registry.registerPath({
   },
   responses: {
     200: {
-      description: 'Updated todo',
+      description: "Updated todo",
       content: {
-        'application/json': {
+        "application/json": {
           schema: TodoSchema,
         },
       },
     },
     404: {
-      description: 'Todo not found',
+      description: "Todo not found",
     },
   },
-});
+})
 
-export const todosRouter = Router();
+export const todosRouter = Router()
 
-todosRouter.get('/', async (_req, res) => {
-  const todos = await listTodos();
-  res.json(todos);
-});
+todosRouter.get("/", async (_req, res) => {
+  const todos = await listTodos()
+  res.json(todos)
+})
 
-todosRouter.post('/', async (req, res) => {
-  const parsed = CreateTodoSchema.safeParse(req.body);
+todosRouter.post("/", async (req, res) => {
+  const parsed = CreateTodoSchema.safeParse(req.body)
   if (!parsed.success) {
-    res.status(400).json({ errors: parsed.error.issues });
-    return;
+    res.status(400).json({ errors: parsed.error.issues })
+    return
   }
 
-  const todo = await createTodo(parsed.data);
-  res.status(201).json(todo);
-});
+  const todo = await createTodo(parsed.data)
+  res.status(201).json(todo)
+})
 
-todosRouter.patch('/:id/done', async (req, res) => {
-  const params = TodoIdParamsSchema.safeParse(req.params);
-  const body = SetTodoDoneSchema.safeParse(req.body);
+todosRouter.patch("/:id/done", async (req, res) => {
+  const params = TodoIdParamsSchema.safeParse(req.params)
+  const body = SetTodoDoneSchema.safeParse(req.body)
   if (!params.success || !body.success) {
     res.status(400).json({
-      errors: [...(params.success ? [] : params.error.issues), ...(body.success ? [] : body.error.issues)],
-    });
-    return;
+      errors: [
+        ...(params.success ? [] : params.error.issues),
+        ...(body.success ? [] : body.error.issues),
+      ],
+    })
+    return
   }
 
-  const todo = await setTodoDone(params.data.id, body.data.done);
+  const todo = await setTodoDone(params.data.id, body.data.done)
   if (!todo) {
-    res.status(404).json({ error: 'Todo not found' });
-    return;
+    res.status(404).json({ error: "Todo not found" })
+    return
   }
 
-  res.json(todo);
-});
+  res.json(todo)
+})

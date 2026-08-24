@@ -6,5 +6,5 @@
  */
 
 export interface TodoIdParams {
-  id: string;
+  id: string
 }

@@ -21,9 +21,7 @@ function TodosList() {
   const onToggle = async (id: string, done: boolean) => {
     await mutate(
       (current) =>
-        current?.map((todo) =>
-          todo.id === id ? { ...todo, done } : todo
-        ),
+        current?.map((todo) => (todo.id === id ? { ...todo, done } : todo)),
       { revalidate: false }
     )
   }
@@ -42,8 +40,8 @@ function TodosList() {
     return (
       <p className="text-sm text-destructive" role="alert">
         Failed to load todos
-        {error instanceof ApiError ? ` (API error ${error.status})` : ""}.
-        Is the backend running?
+        {error instanceof ApiError ? ` (API error ${error.status})` : ""}. Is
+        the backend running?
       </p>
     )
   }

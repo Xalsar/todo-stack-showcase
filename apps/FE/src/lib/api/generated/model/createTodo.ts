@@ -7,5 +7,5 @@
 
 export interface CreateTodo {
   /** @minLength 1 */
-  title: string;
+  title: string
 }

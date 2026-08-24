@@ -19,7 +19,13 @@
     "be:seed": "pnpm --filter BE seed",
     "be:openapi": "pnpm --filter BE openapi",
     "be:api-client": "pnpm --filter BE client:generate",
-    "build": "pnpm -r build"
+    "build": "pnpm -r build",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "prettier": "^3.8.3",
+    "prettier-plugin-tailwindcss": "^0.8.0"
   },
   "engines": {
     "node": ">=20"

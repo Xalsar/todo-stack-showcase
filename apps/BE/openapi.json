@@ -28,13 +28,7 @@
             "format": "date-time"
           }
         },
-        "required": [
-          "id",
-          "title",
-          "done",
-          "createdAt",
-          "updatedAt"
-        ]
+        "required": ["id", "title", "done", "createdAt", "updatedAt"]
       },
       "CreateTodo": {
         "type": "object",
@@ -44,9 +38,7 @@
             "minLength": 1
           }
         },
-        "required": [
-          "title"
-        ]
+        "required": ["title"]
       },
       "SetTodoDone": {
         "type": "object",
@@ -55,9 +47,7 @@
             "type": "boolean"
           }
         },
-        "required": [
-          "done"
-        ]
+        "required": ["done"]
       },
       "TodoIdParams": {
         "type": "object",
@@ -67,9 +57,7 @@
             "format": "uuid"
           }
         },
-        "required": [
-          "id"
-        ]
+        "required": ["id"]
       }
     },
     "parameters": {}

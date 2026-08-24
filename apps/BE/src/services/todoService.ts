@@ -1,43 +1,49 @@
-import { Prisma, PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from "@prisma/client"
 
-import type { CreateTodoDto, TodoDto } from '../schemas/todo.js';
+import type { CreateTodoDto, TodoDto } from "../schemas/todo.js"
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient()
 
 export async function listTodos(): Promise<TodoDto[]> {
-  const todos = await prisma.todo.findMany({ orderBy: { createdAt: 'desc' } });
+  const todos = await prisma.todo.findMany({ orderBy: { createdAt: "desc" } })
 
-  return todos.map(toDto);
+  return todos.map(toDto)
 }
 
 export async function createTodo(input: CreateTodoDto): Promise<TodoDto> {
-  const todo = await prisma.todo.create({ data: { title: input.title } });
+  const todo = await prisma.todo.create({ data: { title: input.title } })
 
-  return toDto(todo);
+  return toDto(todo)
 }
 
-export async function setTodoDone(id: string, done: boolean): Promise<TodoDto | null> {
+export async function setTodoDone(
+  id: string,
+  done: boolean
+): Promise<TodoDto | null> {
   try {
     const todo = await prisma.todo.update({
       where: { id },
       data: { done },
-    });
+    })
 
-    return toDto(todo);
+    return toDto(todo)
   } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
-      return null;
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2025"
+    ) {
+      return null
     }
-    throw error;
+    throw error
   }
 }
 
 function toDto(todo: {
-  id: string;
-  title: string;
-  done: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+  id: string
+  title: string
+  done: boolean
+  createdAt: Date
+  updatedAt: Date
 }): TodoDto {
   return {
     id: todo.id,
@@ -45,5 +51,5 @@ function toDto(todo: {
     done: todo.done,
     createdAt: todo.createdAt.toISOString(),
     updatedAt: todo.updatedAt.toISOString(),
-  };
+  }
 }
