@@ -37,3 +37,11 @@ fetching. An orval-generated SWR client from the committed `apps/BE/openapi.json
 
 - ESM + NodeNext module resolution: relative imports of local TS files need explicit `.js` extensions.
 - tsconfig enables `noUncheckedIndexedAccess`: indexed access returns `T | undefined`.
+
+## Before committing or pushing
+
+- **Always run `pnpm format` first** (`prettier --write .`). Format before
+  `git add`. Never commit or push unformatted changes.
+- Run the app(s)' checks after formatting: BE `pnpm be:build`; FE
+  `pnpm --filter FE typecheck` and `pnpm --filter FE lint`. Do not commit
+  failures. See the `format-before-commit` skill for the full workflow.
