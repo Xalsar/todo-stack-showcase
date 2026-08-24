@@ -27,5 +27,9 @@ export async function todoFetch<T>(
     throw new ApiError(res.status, await res.text())
   }
 
+  if (res.status === 204) {
+    return undefined as T
+  }
+
   return (await res.json()) as T
 }

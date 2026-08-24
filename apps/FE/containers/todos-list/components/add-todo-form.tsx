@@ -2,9 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Plus } from "lucide-react"
-import { useState } from "react"
 import { useForm } from "react-hook-form"
-import { useSWRConfig } from "swr"
 import { z } from "zod"
 
 import {
@@ -20,8 +18,6 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group"
 import { Spinner } from "@/components/ui/spinner"
-import { getGetTodosKey, usePostTodos } from "@/src/lib/api/generated/client"
-import type { Todo } from "@/src/lib/api/generated/model"
 
 const addTodoFormSchema = z.object({
   title: z.string().trim().min(1, "Title is required"),
@@ -29,9 +25,13 @@ const addTodoFormSchema = z.object({
 
 type AddTodoFormValues = z.infer<typeof addTodoFormSchema>
 
-function AddTodoForm() {
-  const [createFailed, setCreateFailed] = useState(false)
+type AddTodoFormProps = {
+  onSubmit: (title: string) => Promise<boolean>
+  isSubmitting: boolean
+  failed: boolean
+}
 
+function AddTodoForm({ onSubmit, isSubmitting, failed }: AddTodoFormProps) {
   const form = useForm<AddTodoFormValues>({
     resolver: zodResolver(addTodoFormSchema),
     defaultValues: { title: "" },
@@ -41,31 +41,19 @@ function AddTodoForm() {
     register,
     handleSubmit,
     reset,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = form
-
-  const { mutate } = useSWRConfig()
-  const { trigger: createTodo } = usePostTodos()
-
-  const onSubmit = handleSubmit(async ({ title }) => {
-    setCreateFailed(false)
-    try {
-      const created = await createTodo({ title })
-      await mutate(
-        getGetTodosKey(),
-        (current: Todo[] | undefined) => [created, ...(current ?? [])],
-        { revalidate: false }
-      )
-      reset()
-    } catch {
-      setCreateFailed(true)
-    }
-  })
 
   const invalid = Boolean(errors.title)
 
   return (
-    <form onSubmit={onSubmit} noValidate>
+    <form
+      onSubmit={handleSubmit(async ({ title }) => {
+        const created = await onSubmit(title)
+        if (created) reset()
+      })}
+      noValidate
+    >
       <FieldGroup>
         <Field data-invalid={invalid || undefined}>
           <FieldLabel htmlFor="add-todo-title" className="sr-only">
@@ -95,7 +83,7 @@ function AddTodoForm() {
           <FieldError errors={[errors.title]} />
         </Field>
 
-        {createFailed ? (
+        {failed ? (
           <p className="text-sm text-destructive" role="alert">
             Failed to create todo. Is the backend running?
           </p>

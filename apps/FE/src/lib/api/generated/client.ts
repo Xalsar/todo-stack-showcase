@@ -235,8 +235,8 @@ export const getDeleteTodosIdUrl = (id: string) => {
 export const deleteTodosId = async (
   id: string,
   options?: Parameters<typeof todoFetch>[1]
-): Promise<void> => {
-  return todoFetch<void>(getDeleteTodosIdUrl(id), {
+): Promise<Todo> => {
+  return todoFetch<Todo>(getDeleteTodosIdUrl(id), {
     ...options,
     method: "DELETE",
   })

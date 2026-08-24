@@ -1,8 +1,6 @@
 "use client"
 
-import { useState } from "react"
 import { Inbox } from "lucide-react"
-import { toast } from "sonner"
 
 import {
   Empty,
@@ -13,151 +11,77 @@ import {
 } from "@/components/ui/empty"
 import { ItemGroup } from "@/components/ui/item"
 import { Skeleton } from "@/components/ui/skeleton"
+import { AddTodoForm } from "@/containers/todos-list/components/add-todo-form"
 import { TodoItem } from "@/containers/todos-list/components/todo-item"
+import { useCreateTodo } from "@/containers/todos-list/hooks/use-create-todo"
+import { useDeleteTodo } from "@/containers/todos-list/hooks/use-delete-todo"
+import { useEditTodo } from "@/containers/todos-list/hooks/use-edit-todo"
+import { useMutatingTodos } from "@/containers/todos-list/hooks/use-mutating-todos"
+import { useToggleTodo } from "@/containers/todos-list/hooks/use-toggle-todo"
 import { ApiError } from "@/src/lib/api/fetcher"
-import {
-  useGetTodos,
-  patchTodosIdDone,
-  patchTodosIdTitle,
-  deleteTodosId,
-} from "@/src/lib/api/generated/client"
+import { useGetTodos } from "@/src/lib/api/generated/client"
 
 function TodosList() {
-  const { data: todos, error, isLoading, mutate } = useGetTodos()
-  const [mutatingIds, setMutatingIds] = useState<Set<string>>(() => new Set())
-  const [editingId, setEditingId] = useState<string | null>(null)
+  const { data: todos, error, isLoading } = useGetTodos()
 
-  const setTodoDone = (id: string, done: boolean) =>
-    mutate(
-      (current) =>
-        current?.map((todo) => (todo.id === id ? { ...todo, done } : todo)),
-      { revalidate: false }
-    )
+  const { setMutating, isMutating } = useMutatingTodos()
 
-  const onToggle = async (id: string, done: boolean) => {
-    try {
-      setMutatingIds((current) => new Set(current).add(id))
-      await setTodoDone(id, done)
-      const updated = await patchTodosIdDone(id, { done })
-      await setTodoDone(id, updated.done)
-    } catch {
-      await setTodoDone(id, !done)
-      toast.error("Failed to update todo. Is the backend running?")
-    } finally {
-      setMutatingIds((current) => {
-        const next = new Set(current)
-        next.delete(id)
-        return next
-      })
-    }
-  }
-
-  const removeTodo = (id: string) =>
-    mutate((current) => current?.filter((todo) => todo.id !== id), {
-      revalidate: false,
-    })
-
-  const setTodoTitle = (id: string, title: string) =>
-    mutate(
-      (current) =>
-        current?.map((todo) => (todo.id === id ? { ...todo, title } : todo)),
-      { revalidate: false }
-    )
-
-  const onUpdateTitle = async (id: string, title: string) => {
-    const current = todos?.find((todo) => todo.id === id)
-    if (!current || title === current.title) {
-      setEditingId(null)
-      return
-    }
-    try {
-      setMutatingIds((current) => new Set(current).add(id))
-      await setTodoTitle(id, title)
-      const updated = await patchTodosIdTitle(id, { title })
-      await setTodoTitle(id, updated.title)
-      setEditingId(null)
-    } catch {
-      await setTodoTitle(id, current.title)
-      toast.error("Failed to update todo. Is the backend running?")
-    } finally {
-      setMutatingIds((current) => {
-        const next = new Set(current)
-        next.delete(id)
-        return next
-      })
-    }
-  }
-
-  const onDelete = async (id: string) => {
-    const removed = todos?.find((todo) => todo.id === id)
-    try {
-      setMutatingIds((current) => new Set(current).add(id))
-      await removeTodo(id)
-      await deleteTodosId(id)
-    } catch {
-      if (removed) await setTodoDone(id, removed.done)
-      toast.error("Failed to delete todo. Is the backend running?")
-    } finally {
-      setMutatingIds((current) => {
-        const next = new Set(current)
-        next.delete(id)
-        return next
-      })
-    }
-  }
-
-  if (isLoading) {
-    return (
-      <div aria-hidden className="flex flex-col gap-2">
-        <Skeleton className="h-[52px] w-full rounded-lg" />
-        <Skeleton className="h-[52px] w-full rounded-lg" />
-        <Skeleton className="h-[52px] w-full rounded-lg" />
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <p className="text-sm text-destructive" role="alert">
-        Failed to load todos
-        {error instanceof ApiError ? ` (API error ${error.status})` : ""}. Is
-        the backend running?
-      </p>
-    )
-  }
-
-  if (!todos?.length) {
-    return (
-      <Empty>
-        <EmptyHeader>
-          <EmptyMedia variant="icon">
-            <Inbox />
-          </EmptyMedia>
-          <EmptyTitle>No todos yet</EmptyTitle>
-          <EmptyDescription>
-            Use the field above to add your first one.
-          </EmptyDescription>
-        </EmptyHeader>
-      </Empty>
-    )
-  }
+  const create = useCreateTodo()
+  const { onToggle } = useToggleTodo(setMutating)
+  const { editingId, onStartEdit, onCancelEdit, onUpdateTitle } =
+    useEditTodo(setMutating)
+  const { onDelete } = useDeleteTodo(setMutating)
 
   return (
-    <ItemGroup>
-      {todos.map((todo) => (
-        <TodoItem
-          key={todo.id}
-          todo={todo}
-          isMutating={mutatingIds.has(todo.id)}
-          editing={editingId === todo.id}
-          onToggle={onToggle}
-          onDelete={onDelete}
-          onStartEdit={() => setEditingId(todo.id)}
-          onCancelEdit={() => setEditingId(null)}
-          onSubmitEdit={(title) => onUpdateTitle(todo.id, title)}
-        />
-      ))}
-    </ItemGroup>
+    <div className="flex flex-col gap-4">
+      <AddTodoForm
+        onSubmit={create.onSubmit}
+        isSubmitting={create.isSubmitting}
+        failed={create.failed}
+      />
+
+      {isLoading ? (
+        <div aria-hidden className="flex flex-col gap-2">
+          <Skeleton className="h-[52px] w-full rounded-lg" />
+          <Skeleton className="h-[52px] w-full rounded-lg" />
+          <Skeleton className="h-[52px] w-full rounded-lg" />
+        </div>
+      ) : error ? (
+        <p className="text-sm text-destructive" role="alert">
+          Failed to load todos
+          {error instanceof ApiError ? ` (API error ${error.status})` : ""}. Is
+          the backend running?
+        </p>
+      ) : !todos?.length ? (
+        <Empty>
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <Inbox />
+            </EmptyMedia>
+            <EmptyTitle>No todos yet</EmptyTitle>
+            <EmptyDescription>
+              Use the field above to add your first one.
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
+      ) : (
+        <ItemGroup>
+          {todos.map((todo) => (
+            <TodoItem
+              key={todo.id}
+              todo={todo}
+              isMutating={isMutating(todo.id)}
+              editing={editingId === todo.id}
+              onToggle={onToggle}
+              onDelete={onDelete}
+              onStartEdit={() => onStartEdit(todo.id)}
+              onCancelEdit={onCancelEdit}
+              onSubmitEdit={(title) => onUpdateTitle(todo.id, title)}
+            />
+          ))}
+        </ItemGroup>
+      )}
+    </div>
   )
 }
 

@@ -213,8 +213,15 @@
           }
         ],
         "responses": {
-          "204": {
-            "description": "Todo deleted"
+          "200": {
+            "description": "Deleted todo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Todo"
+                }
+              }
+            }
           },
           "404": {
             "description": "Todo not found"

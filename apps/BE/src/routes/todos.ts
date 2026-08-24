@@ -187,8 +187,13 @@ registry.registerPath({
     params: TodoIdParamsSchema,
   },
   responses: {
-    204: {
-      description: "Todo deleted",
+    200: {
+      description: "Deleted todo",
+      content: {
+        "application/json": {
+          schema: TodoSchema,
+        },
+      },
     },
     404: {
       description: "Todo not found",
@@ -209,5 +214,5 @@ todosRouter.delete("/:id", async (req, res) => {
     return
   }
 
-  res.status(204).end()
+  res.json(deleted)
 })
