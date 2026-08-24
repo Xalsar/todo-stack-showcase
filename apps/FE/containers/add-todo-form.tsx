@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { Plus } from "lucide-react"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
+import { useSWRConfig } from "swr"
 import { z } from "zod"
 
 import {
@@ -19,7 +20,8 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group"
 import { Spinner } from "@/components/ui/spinner"
-import { usePostTodos } from "@/src/lib/api/generated/client"
+import { getGetTodosKey, usePostTodos } from "@/src/lib/api/generated/client"
+import type { Todo } from "@/src/lib/api/generated/model"
 
 const addTodoFormSchema = z.object({
   title: z.string().trim().min(1, "Title is required"),
@@ -29,10 +31,12 @@ type AddTodoFormValues = z.infer<typeof addTodoFormSchema>
 
 function AddTodoForm() {
   const [createFailed, setCreateFailed] = useState(false)
+
   const form = useForm<AddTodoFormValues>({
     resolver: zodResolver(addTodoFormSchema),
     defaultValues: { title: "" },
   })
+
   const {
     register,
     handleSubmit,
@@ -40,14 +44,18 @@ function AddTodoForm() {
     formState: { errors, isSubmitting },
   } = form
 
-  const { trigger: createTodo } = usePostTodos({
-    swr: { revalidate: true },
-  })
+  const { mutate } = useSWRConfig()
+  const { trigger: createTodo } = usePostTodos()
 
   const onSubmit = handleSubmit(async ({ title }) => {
     setCreateFailed(false)
     try {
-      await createTodo({ title })
+      const created = await createTodo({ title })
+      await mutate(
+        getGetTodosKey(),
+        (current: Todo[] | undefined) => [created, ...(current ?? [])],
+        { revalidate: false }
+      )
       reset()
     } catch {
       setCreateFailed(true)
