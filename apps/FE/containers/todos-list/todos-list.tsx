@@ -1,6 +1,8 @@
 "use client"
 
+import { useState } from "react"
 import { Inbox } from "lucide-react"
+import { toast } from "sonner"
 
 import {
   Empty,
@@ -13,17 +15,35 @@ import { ItemGroup } from "@/components/ui/item"
 import { Skeleton } from "@/components/ui/skeleton"
 import { TodoItem } from "@/containers/todos-list/components/todo-item"
 import { ApiError } from "@/src/lib/api/fetcher"
-import { useGetTodos } from "@/src/lib/api/generated/client"
+import { useGetTodos, patchTodosIdDone } from "@/src/lib/api/generated/client"
 
 function TodosList() {
   const { data: todos, error, isLoading, mutate } = useGetTodos()
+  const [mutatingIds, setMutatingIds] = useState<Set<string>>(() => new Set())
 
-  const onToggle = async (id: string, done: boolean) => {
-    await mutate(
+  const setTodoDone = (id: string, done: boolean) =>
+    mutate(
       (current) =>
         current?.map((todo) => (todo.id === id ? { ...todo, done } : todo)),
       { revalidate: false }
     )
+
+  const onToggle = async (id: string, done: boolean) => {
+    try {
+      setMutatingIds((current) => new Set(current).add(id))
+      await setTodoDone(id, done)
+      const updated = await patchTodosIdDone(id, { done })
+      await setTodoDone(id, updated.done)
+    } catch {
+      await setTodoDone(id, !done)
+      toast.error("Failed to update todo. Is the backend running?")
+    } finally {
+      setMutatingIds((current) => {
+        const next = new Set(current)
+        next.delete(id)
+        return next
+      })
+    }
   }
 
   if (isLoading) {
@@ -65,7 +85,12 @@ function TodosList() {
   return (
     <ItemGroup>
       {todos.map((todo) => (
-        <TodoItem key={todo.id} todo={todo} onToggle={onToggle} />
+        <TodoItem
+          key={todo.id}
+          todo={todo}
+          isMutating={mutatingIds.has(todo.id)}
+          onToggle={onToggle}
+        />
       ))}
     </ItemGroup>
   )
