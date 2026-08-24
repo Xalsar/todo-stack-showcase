@@ -1,9 +1,15 @@
 "use client"
 
-import { Check, Circle } from "lucide-react"
+import { Check, Circle, Trash2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { Item, ItemContent, ItemMedia, ItemTitle } from "@/components/ui/item"
+import {
+  Item,
+  ItemActions,
+  ItemContent,
+  ItemMedia,
+  ItemTitle,
+} from "@/components/ui/item"
 import type { Todo } from "@/src/lib/api/generated/model"
 
 import { cn } from "@/lib/utils"
@@ -12,9 +18,10 @@ type TodoItemProps = {
   todo: Todo
   isMutating: boolean
   onToggle: (id: string, done: boolean) => Promise<void>
+  onDelete: (id: string) => Promise<void>
 }
 
-function TodoItem({ todo, isMutating, onToggle }: TodoItemProps) {
+function TodoItem({ todo, isMutating, onToggle, onDelete }: TodoItemProps) {
   return (
     <Item key={todo.id} variant="outline">
       <ItemMedia variant="icon">
@@ -43,6 +50,18 @@ function TodoItem({ todo, isMutating, onToggle }: TodoItemProps) {
           {todo.title}
         </ItemTitle>
       </ItemContent>
+      <ItemActions>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          onClick={() => onDelete(todo.id)}
+          disabled={isMutating}
+          className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive disabled:opacity-100 dark:hover:bg-destructive/20"
+          aria-label="Delete todo"
+        >
+          <Trash2 />
+        </Button>
+      </ItemActions>
     </Item>
   )
 }

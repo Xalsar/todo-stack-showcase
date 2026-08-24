@@ -147,6 +147,29 @@
           }
         }
       }
+    },
+    "/todos/{id}": {
+      "delete": {
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Todo deleted"
+          },
+          "404": {
+            "description": "Todo not found"
+          }
+        }
+      }
     }
   }
 }

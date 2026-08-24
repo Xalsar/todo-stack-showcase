@@ -1,7 +1,12 @@
 import { Router } from "express"
 import { z } from "zod"
 
-import { createTodo, listTodos, setTodoDone } from "../services/todoService.js"
+import {
+  createTodo,
+  deleteTodo,
+  listTodos,
+  setTodoDone,
+} from "../services/todoService.js"
 import {
   CreateTodoSchema,
   registry,
@@ -119,4 +124,36 @@ todosRouter.patch("/:id/done", async (req, res) => {
   }
 
   res.json(todo)
+})
+
+registry.registerPath({
+  method: "delete",
+  path: "/todos/{id}",
+  request: {
+    params: TodoIdParamsSchema,
+  },
+  responses: {
+    204: {
+      description: "Todo deleted",
+    },
+    404: {
+      description: "Todo not found",
+    },
+  },
+})
+
+todosRouter.delete("/:id", async (req, res) => {
+  const params = TodoIdParamsSchema.safeParse(req.params)
+  if (!params.success) {
+    res.status(400).json({ errors: params.error.issues })
+    return
+  }
+
+  const deleted = await deleteTodo(params.data.id)
+  if (!deleted) {
+    res.status(404).json({ error: "Todo not found" })
+    return
+  }
+
+  res.status(204).end()
 })

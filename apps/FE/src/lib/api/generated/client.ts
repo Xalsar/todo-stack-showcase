@@ -5,7 +5,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import useSwr from "swr"
-import type { Key, SWRConfiguration } from "swr"
+import type { Arguments, Key, SWRConfiguration } from "swr"
 
 import useSWRMutation from "swr/mutation"
 import type { SWRMutationConfiguration } from "swr/mutation"
@@ -161,6 +161,61 @@ export const usePatchTodosIdDone = <TError = void>(
 
   const swrKey = swrOptions?.swrKey ?? getPatchTodosIdDoneMutationKey(id)
   const swrFn = getPatchTodosIdDoneMutationFetcher(id, requestOptions)
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query,
+  }
+}
+
+export const getDeleteTodosIdUrl = (id: string) => {
+  return `/todos/${id}`
+}
+
+export const deleteTodosId = async (
+  id: string,
+  options?: Parameters<typeof todoFetch>[1]
+): Promise<void> => {
+  return todoFetch<void>(getDeleteTodosIdUrl(id), {
+    ...options,
+    method: "DELETE",
+  })
+}
+
+export const getDeleteTodosIdMutationFetcher = (
+  id: string,
+  options?: SecondParameter<typeof todoFetch>
+) => {
+  return (_: Key, __: { arg: Arguments }) => {
+    return deleteTodosId(id, options)
+  }
+}
+export const getDeleteTodosIdMutationKey = (id: string) =>
+  [`/todos/${id}`] as const
+
+export type DeleteTodosIdMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteTodosId>>
+>
+
+export const useDeleteTodosId = <TError = void>(
+  id: string,
+  options?: {
+    swr?: SWRMutationConfiguration<
+      Awaited<ReturnType<typeof deleteTodosId>>,
+      TError,
+      Key,
+      Arguments,
+      Awaited<ReturnType<typeof deleteTodosId>>
+    > & { swrKey?: string }
+    request?: SecondParameter<typeof todoFetch>
+  }
+) => {
+  const { swr: swrOptions, request: requestOptions } = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getDeleteTodosIdMutationKey(id)
+  const swrFn = getDeleteTodosIdMutationFetcher(id, requestOptions)
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions)
 

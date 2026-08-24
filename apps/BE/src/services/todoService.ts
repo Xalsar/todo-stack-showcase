@@ -38,6 +38,22 @@ export async function setTodoDone(
   }
 }
 
+export async function deleteTodo(id: string): Promise<boolean> {
+  try {
+    await prisma.todo.delete({ where: { id } })
+
+    return true
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2025"
+    ) {
+      return false
+    }
+    throw error
+  }
+}
+
 function toDto(todo: {
   id: string
   title: string

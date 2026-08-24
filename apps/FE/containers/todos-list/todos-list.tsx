@@ -15,7 +15,11 @@ import { ItemGroup } from "@/components/ui/item"
 import { Skeleton } from "@/components/ui/skeleton"
 import { TodoItem } from "@/containers/todos-list/components/todo-item"
 import { ApiError } from "@/src/lib/api/fetcher"
-import { useGetTodos, patchTodosIdDone } from "@/src/lib/api/generated/client"
+import {
+  useGetTodos,
+  patchTodosIdDone,
+  deleteTodosId,
+} from "@/src/lib/api/generated/client"
 
 function TodosList() {
   const { data: todos, error, isLoading, mutate } = useGetTodos()
@@ -37,6 +41,29 @@ function TodosList() {
     } catch {
       await setTodoDone(id, !done)
       toast.error("Failed to update todo. Is the backend running?")
+    } finally {
+      setMutatingIds((current) => {
+        const next = new Set(current)
+        next.delete(id)
+        return next
+      })
+    }
+  }
+
+  const removeTodo = (id: string) =>
+    mutate((current) => current?.filter((todo) => todo.id !== id), {
+      revalidate: false,
+    })
+
+  const onDelete = async (id: string) => {
+    const removed = todos?.find((todo) => todo.id === id)
+    try {
+      setMutatingIds((current) => new Set(current).add(id))
+      await removeTodo(id)
+      await deleteTodosId(id)
+    } catch {
+      if (removed) await setTodoDone(id, removed.done)
+      toast.error("Failed to delete todo. Is the backend running?")
     } finally {
       setMutatingIds((current) => {
         const next = new Set(current)
@@ -90,6 +117,7 @@ function TodosList() {
           todo={todo}
           isMutating={mutatingIds.has(todo.id)}
           onToggle={onToggle}
+          onDelete={onDelete}
         />
       ))}
     </ItemGroup>
