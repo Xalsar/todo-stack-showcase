@@ -1,4 +1,4 @@
-# My simple JS stack to build FE apps with AI
+# My simple TypeScript stack to build FE apps with AI
 
 ## Index
 
@@ -43,7 +43,7 @@ Prisma is super easy to read and I already know how to use it.
 
 #### Container engine: Podman
 
-Why not docker?
+Why not Docker?
 
 It's easier to install and more secure since it does not require root access.
 
@@ -84,3 +84,21 @@ shadcn/ui works with Tailwind CSS and is modular and mature.
 #### Opencode Zen
 
 It's super cheap and powerful.
+
+### Skills: [Autoskills](https://www.autoskills.sh/) and custom ones
+
+Autoskills takes all the skills from different places, reads your project to pick up the ones you need and downloads them.
+
+I also use a few custom skills.
+
+## Where to deploy this app?
+
+### Vercel FE and Render BE
+
+Why not others?
+
+[Vercel](https://vercel.com) and [Render](https://render.com) are super easy to use and ideal for small teams.
+
+### [Neon](https://neon.com)
+
+Super easy to use.
