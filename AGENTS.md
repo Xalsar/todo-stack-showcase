@@ -37,6 +37,7 @@ fetching. An orval-generated SWR client from the committed `apps/BE/openapi.json
 
 - ESM + NodeNext module resolution: relative imports of local TS files need explicit `.js` extensions.
 - tsconfig enables `noUncheckedIndexedAccess`: indexed access returns `T | undefined`.
+- Follow `fe-structure-preferences` when creating, refactoring, or reviewing React components and hooks.
 
 ## Before committing or pushing
 
