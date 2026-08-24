@@ -41,6 +41,12 @@ Why not Drizzle?
 
 Prisma is super easy to read and I already know how to use it.
 
+#### Container engine: Podman
+
+Why not docker?
+
+It's easier to install and more secure since it does not require root access.
+
 #### API validation: Zod + @asteasolutions/zod-to-openapi
 
 Why?
