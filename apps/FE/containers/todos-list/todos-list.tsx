@@ -16,6 +16,7 @@ import { TodoItem } from "@/containers/todos-list/components/todo-item"
 import { useCreateTodo } from "@/containers/todos-list/hooks/use-create-todo"
 import { useDeleteTodo } from "@/containers/todos-list/hooks/use-delete-todo"
 import { useEditTodo } from "@/containers/todos-list/hooks/use-edit-todo"
+import { useLabelTodo } from "@/containers/todos-list/hooks/use-label-todo"
 import { useLabels } from "@/containers/todos-list/hooks/use-labels"
 import { useMutatingTodos } from "@/containers/todos-list/hooks/use-mutating-todos"
 import { useToggleTodo } from "@/containers/todos-list/hooks/use-toggle-todo"
@@ -34,6 +35,7 @@ function TodosList() {
   const { editingId, onStartEdit, onCancelEdit, onUpdateTitle } =
     useEditTodo(setMutating)
   const { onDelete } = useDeleteTodo(setMutating)
+  const { onLabel } = useLabelTodo(setMutating)
 
   return (
     <div className="flex flex-col gap-4">
@@ -78,6 +80,7 @@ function TodosList() {
               editing={editingId === todo.id}
               onToggle={onToggle}
               onDelete={onDelete}
+              onLabel={onLabel}
               onStartEdit={() => onStartEdit(todo.id)}
               onCancelEdit={onCancelEdit}
               onSubmitEdit={(title) => onUpdateTitle(todo.id, title)}

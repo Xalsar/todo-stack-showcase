@@ -6,6 +6,7 @@ import {
   deleteTodo,
   listTodos,
   setTodoDone,
+  updateTodoLabel,
   updateTodoTitle,
 } from "../services/todoService.js"
 import {
@@ -14,6 +15,7 @@ import {
   SetTodoDoneSchema,
   TodoIdParamsSchema,
   TodoSchema,
+  UpdateTodoLabelSchema,
   UpdateTodoTitleSchema,
 } from "../schemas/todo.js"
 
@@ -178,6 +180,62 @@ todosRouter.patch("/:id/title", async (req, res) => {
   }
 
   res.json(todo)
+})
+
+registry.registerPath({
+  method: "patch",
+  path: "/todos/{id}/label",
+  request: {
+    params: TodoIdParamsSchema,
+    body: {
+      description: "New todo label id",
+      required: true,
+      content: {
+        "application/json": {
+          schema: UpdateTodoLabelSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: "Updated todo",
+      content: {
+        "application/json": {
+          schema: TodoSchema,
+        },
+      },
+    },
+    404: {
+      description: "Todo not found",
+    },
+  },
+})
+
+todosRouter.patch("/:id/label", async (req, res) => {
+  const params = TodoIdParamsSchema.safeParse(req.params)
+  const body = UpdateTodoLabelSchema.safeParse(req.body)
+  if (!params.success || !body.success) {
+    res.status(400).json({
+      errors: [
+        ...(params.success ? [] : params.error.issues),
+        ...(body.success ? [] : body.error.issues),
+      ],
+    })
+    return
+  }
+
+  const result = await updateTodoLabel(params.data.id, body.data.labelId)
+  if (!result.ok) {
+    if (result.reason === "todo-not-found") {
+      res.status(404).json({ error: "Todo not found" })
+    } else {
+      res.status(400).json({ error: "Label not found" })
+    }
+    return
+  }
+
+  res.json(result.todo)
 })
 
 registry.registerPath({

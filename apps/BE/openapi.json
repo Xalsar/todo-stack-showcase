@@ -64,6 +64,17 @@
         },
         "required": ["title"]
       },
+      "UpdateTodoLabel": {
+        "type": "object",
+        "properties": {
+          "labelId": {
+            "type": "string",
+            "nullable": true,
+            "format": "uuid"
+          }
+        },
+        "required": ["labelId"]
+      },
       "TodoIdParams": {
         "type": "object",
         "properties": {
@@ -223,6 +234,47 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/UpdateTodoTitle"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated todo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Todo"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Todo not found"
+          }
+        }
+      }
+    },
+    "/todos/{id}/label": {
+      "patch": {
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "description": "New todo label id",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTodoLabel"
               }
             }
           }

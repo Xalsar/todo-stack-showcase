@@ -30,6 +30,7 @@ type TodoItemProps = {
   editing: boolean
   onToggle: (id: string, done: boolean) => Promise<void>
   onDelete: (id: string) => Promise<void>
+  onLabel: (id: string, labelId: string | null) => Promise<void>
   onStartEdit: () => void
   onCancelEdit: () => void
   onSubmitEdit: (title: string) => Promise<void>
@@ -42,6 +43,7 @@ function TodoItem({
   editing,
   onToggle,
   onDelete,
+  onLabel,
   onStartEdit,
   onCancelEdit,
   onSubmitEdit,
@@ -116,11 +118,18 @@ function TodoItem({
             <DropdownMenuContent align="end" side="bottom">
               <DropdownMenuGroup>
                 <DropdownMenuLabel>Labels</DropdownMenuLabel>
+                <DropdownMenuItem
+                  disabled={todo.labelId === null}
+                  onClick={() => onLabel(todo.id, null)}
+                >
+                  No label
+                </DropdownMenuItem>
                 {labels.length > 0 ? (
                   labels.map((label) => (
                     <DropdownMenuItem
                       key={label.id}
                       disabled={label.id === todo.labelId}
+                      onClick={() => onLabel(todo.id, label.id)}
                     >
                       {label.name}
                     </DropdownMenuItem>

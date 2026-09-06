@@ -41,6 +41,13 @@ export const UpdateTodoTitleSchema = registry.register(
   })
 )
 
+export const UpdateTodoLabelSchema = registry.register(
+  "UpdateTodoLabel",
+  z.object({
+    labelId: z.uuid().nullable(),
+  })
+)
+
 export const TodoIdParamsSchema = registry.register(
   "TodoIdParams",
   z.object({
@@ -52,4 +59,5 @@ export type TodoDto = z.infer<typeof TodoSchema>
 export type CreateTodoDto = z.infer<typeof CreateTodoSchema>
 export type SetTodoDoneDto = z.infer<typeof SetTodoDoneSchema>
 export type UpdateTodoTitleDto = z.infer<typeof UpdateTodoTitleSchema>
+export type UpdateTodoLabelDto = z.infer<typeof UpdateTodoLabelSchema>
 export type TodoIdParams = z.infer<typeof TodoIdParamsSchema>

@@ -59,6 +59,34 @@ export async function updateTodoTitle(
   }
 }
 
+export type UpdateTodoLabelResult =
+  | { ok: true; todo: TodoDto }
+  | { ok: false; reason: "todo-not-found" | "label-not-found" }
+
+export async function updateTodoLabel(
+  id: string,
+  labelId: string | null
+): Promise<UpdateTodoLabelResult> {
+  try {
+    const todo = await prisma.todo.update({
+      where: { id },
+      data: { labelId },
+    })
+
+    return { ok: true, todo: toDto(todo) }
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2025") {
+        return { ok: false, reason: "todo-not-found" }
+      }
+      if (error.code === "P2003") {
+        return { ok: false, reason: "label-not-found" }
+      }
+    }
+    throw error
+  }
+}
+
 export async function deleteTodo(id: string): Promise<boolean> {
   try {
     await prisma.todo.delete({ where: { id } })

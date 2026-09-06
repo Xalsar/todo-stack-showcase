@@ -15,6 +15,7 @@ import type {
   Label,
   SetTodoDone,
   Todo,
+  UpdateTodoLabel,
   UpdateTodoTitle,
 } from "./model"
 
@@ -270,6 +271,64 @@ export const usePatchTodosIdTitle = <TError = void>(
 
   const swrKey = swrOptions?.swrKey ?? getPatchTodosIdTitleMutationKey(id)
   const swrFn = getPatchTodosIdTitleMutationFetcher(id, requestOptions)
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query,
+  }
+}
+
+export const getPatchTodosIdLabelUrl = (id: string) => {
+  return `/todos/${id}/label`
+}
+
+export const patchTodosIdLabel = async (
+  id: string,
+  updateTodoLabel: UpdateTodoLabel,
+  options?: Parameters<typeof todoFetch>[1]
+): Promise<Todo> => {
+  return todoFetch<Todo>(getPatchTodosIdLabelUrl(id), {
+    ...options,
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(updateTodoLabel),
+  })
+}
+
+export const getPatchTodosIdLabelMutationFetcher = (
+  id: string,
+  options?: SecondParameter<typeof todoFetch>
+) => {
+  return (_: Key, { arg }: { arg: UpdateTodoLabel }) => {
+    return patchTodosIdLabel(id, arg, options)
+  }
+}
+export const getPatchTodosIdLabelMutationKey = (id: string) =>
+  [`/todos/${id}/label`] as const
+
+export type PatchTodosIdLabelMutationResult = NonNullable<
+  Awaited<ReturnType<typeof patchTodosIdLabel>>
+>
+
+export const usePatchTodosIdLabel = <TError = void>(
+  id: string,
+  options?: {
+    swr?: SWRMutationConfiguration<
+      Awaited<ReturnType<typeof patchTodosIdLabel>>,
+      TError,
+      Key,
+      UpdateTodoLabel,
+      Awaited<ReturnType<typeof patchTodosIdLabel>>
+    > & { swrKey?: string }
+    request?: SecondParameter<typeof todoFetch>
+  }
+) => {
+  const { swr: swrOptions, request: requestOptions } = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getPatchTodosIdLabelMutationKey(id)
+  const swrFn = getPatchTodosIdLabelMutationFetcher(id, requestOptions)
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions)
 

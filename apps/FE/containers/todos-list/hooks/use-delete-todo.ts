@@ -19,9 +19,7 @@ function useDeleteTodo(setMutating: SetMutating) {
     try {
       removeTodo(id)
       await deleteTodosId(id)
-    } catch (e) {
-      console.log("Failed to delete todo", e)
-
+    } catch {
       const removed = todos?.find((todo) => todo.id === id)
       if (removed) {
         mutate((current) => [removed, ...(current ?? [])], {
