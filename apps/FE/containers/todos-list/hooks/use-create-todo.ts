@@ -16,7 +16,7 @@ function useCreateTodo() {
     setFailed(false)
     setIsSubmitting(true)
     try {
-      const created = await createTodo({ title })
+      const created = await createTodo({ title }, { revalidate: false })
       await mutate(
         (current: Todo[] | undefined) => [created, ...(current ?? [])],
         { revalidate: false }
