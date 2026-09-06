@@ -16,6 +16,7 @@ import { TodoItem } from "@/containers/todos-list/components/todo-item"
 import { useCreateTodo } from "@/containers/todos-list/hooks/use-create-todo"
 import { useDeleteTodo } from "@/containers/todos-list/hooks/use-delete-todo"
 import { useEditTodo } from "@/containers/todos-list/hooks/use-edit-todo"
+import { useLabels } from "@/containers/todos-list/hooks/use-labels"
 import { useMutatingTodos } from "@/containers/todos-list/hooks/use-mutating-todos"
 import { useToggleTodo } from "@/containers/todos-list/hooks/use-toggle-todo"
 import { ApiError } from "@/src/lib/api/fetcher"
@@ -23,6 +24,8 @@ import { useGetTodos } from "@/src/lib/api/generated/client"
 
 function TodosList() {
   const { data: todos, error, isLoading } = useGetTodos()
+
+  const { data: labels } = useLabels()
 
   const { setMutating, isMutating } = useMutatingTodos()
 
@@ -70,6 +73,7 @@ function TodosList() {
             <TodoItem
               key={todo.id}
               todo={todo}
+              labels={labels ?? []}
               isMutating={isMutating(todo.id)}
               editing={editingId === todo.id}
               onToggle={onToggle}

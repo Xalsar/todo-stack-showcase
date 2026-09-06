@@ -1,8 +1,16 @@
 "use client"
 
-import { Check, Circle, Pencil, Trash2 } from "lucide-react"
+import { Check, Circle, Pencil, Tags, Trash2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import {
   Item,
   ItemActions,
@@ -11,12 +19,13 @@ import {
   ItemTitle,
 } from "@/components/ui/item"
 import { EditTodoForm } from "@/containers/todos-list/components/edit-todo-form"
-import type { Todo } from "@/src/lib/api/generated/model"
+import type { Label, Todo } from "@/src/lib/api/generated/model"
 
 import { cn } from "@/lib/utils"
 
 type TodoItemProps = {
   todo: Todo
+  labels: Label[]
   isMutating: boolean
   editing: boolean
   onToggle: (id: string, done: boolean) => Promise<void>
@@ -28,6 +37,7 @@ type TodoItemProps = {
 
 function TodoItem({
   todo,
+  labels,
   isMutating,
   editing,
   onToggle,
@@ -85,6 +95,35 @@ function TodoItem({
       </ItemContent>
       {editing ? null : (
         <ItemActions>
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  disabled={isMutating}
+                  className="text-muted-foreground disabled:opacity-100"
+                  aria-label="View labels"
+                />
+              }
+            >
+              <Tags />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" side="bottom">
+              <DropdownMenuGroup>
+                <DropdownMenuLabel>Labels</DropdownMenuLabel>
+                {labels.length > 0 ? (
+                  labels.map((label) => (
+                    <DropdownMenuItem key={label.id} disabled>
+                      {label.name}
+                    </DropdownMenuItem>
+                  ))
+                ) : (
+                  <DropdownMenuItem disabled>No labels</DropdownMenuItem>
+                )}
+              </DropdownMenuGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button
             variant="ghost"
             size="icon-sm"
