@@ -46,6 +46,8 @@ function TodoItem({
   onCancelEdit,
   onSubmitEdit,
 }: TodoItemProps) {
+  const label = labels.find((l) => l.id === todo.labelId)
+
   return (
     <Item key={todo.id} variant="outline">
       <ItemMedia variant="icon">
@@ -100,15 +102,17 @@ function TodoItem({
               render={
                 <Button
                   variant="ghost"
-                  size="icon-sm"
                   disabled={isMutating}
-                  className="text-muted-foreground disabled:opacity-100"
+                  className="px-2 text-muted-foreground disabled:opacity-100"
                   aria-label="View labels"
-                />
+                >
+                  {label ? (
+                    <span className="text-sm font-normal">{label.name}</span>
+                  ) : null}
+                  <Tags />
+                </Button>
               }
-            >
-              <Tags />
-            </DropdownMenuTrigger>
+            />
             <DropdownMenuContent align="end" side="bottom">
               <DropdownMenuGroup>
                 <DropdownMenuLabel>Labels</DropdownMenuLabel>
