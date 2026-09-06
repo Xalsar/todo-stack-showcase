@@ -26,6 +26,11 @@ fetching. An orval-generated SWR client from the committed `apps/BE/openapi.json
   `pnpm --filter BE exec prisma ...`). Never `npx`/`pnpm dlx prisma`: it fetches v7, whose schema
   validator rejects this repo's v6-style datasource url. `.vscode/settings.json` pins the IDE extension
   to 6 for the same reason.
+- For a named migration use `pnpm be:migrate:name <name>` (wraps `prisma migrate dev --name`). Don't
+  use `pnpm be:migrate -- --name <name>` — pnpm's `--` pass-through doesn't forward flags to Prisma
+  correctly and it prompts interactively. An aborted interactive run can leave a transient `P1002`
+  advisory-lock timeout on the next attempt; distinguish that from a half-applied migration by checking
+  `pg_stat_activity` for lingering connections and `_prisma_migrations` for the applied state.
 - API contract shapes live in zod schemas (`apps/BE/src/schemas/`) plus `registry.registerPath` calls in
   route files (e.g. `apps/BE/src/routes/todos.ts`). After any contract change run `pnpm be:openapi`, then
   `pnpm be:api-client` to regenerate the FE SWR client. Generated files are committed and lint/prettier

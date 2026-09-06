@@ -14,6 +14,7 @@
     "be:db:up": "pnpm --filter BE db:up",
     "be:db:down": "pnpm --filter BE db:down",
     "be:migrate": "pnpm --filter BE migrate",
+    "be:migrate:name": "pnpm --filter BE exec prisma migrate dev --name",
     "be:generate": "pnpm --filter BE generate",
     "be:studio": "pnpm --filter BE studio",
     "be:seed": "pnpm --filter BE seed",

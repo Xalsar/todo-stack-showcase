@@ -10,16 +10,26 @@ const sampleTodos = [
   { title: "Review open pull requests", done: true },
 ]
 
-async function main(): Promise<void> {
-  const count = await prisma.todo.count()
+const sampleLabels = [{ name: "Work" }, { name: "Personal" }]
 
-  if (count > 0) {
-    console.log(`Found ${count} existing todo(s), skipping seed.`)
-    return
+async function main(): Promise<void> {
+  const todoCount = await prisma.todo.count()
+
+  if (todoCount === 0) {
+    const result = await prisma.todo.createMany({ data: sampleTodos })
+    console.log(`Seeded ${result.count} todo(s).`)
+  } else {
+    console.log(`Found ${todoCount} existing todo(s), skipping seed.`)
   }
 
-  const result = await prisma.todo.createMany({ data: sampleTodos })
-  console.log(`Seeded ${result.count} todo(s).`)
+  const labelCount = await prisma.label.count()
+
+  if (labelCount === 0) {
+    const result = await prisma.label.createMany({ data: sampleLabels })
+    console.log(`Seeded ${result.count} label(s).`)
+  } else {
+    console.log(`Found ${labelCount} existing label(s), skipping seed.`)
+  }
 }
 
 main()
