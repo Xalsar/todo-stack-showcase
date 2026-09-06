@@ -2,6 +2,7 @@ import { writeFile } from "node:fs/promises"
 
 import { OpenApiGeneratorV3 } from "@asteasolutions/zod-to-openapi"
 
+import "../routes/labels.js"
 import "../routes/todos.js"
 import { registry } from "../schemas/todo.js"
 

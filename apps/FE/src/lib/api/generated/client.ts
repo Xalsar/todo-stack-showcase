@@ -10,10 +10,61 @@ import type { Arguments, Key, SWRConfiguration } from "swr"
 import useSWRMutation from "swr/mutation"
 import type { SWRMutationConfiguration } from "swr/mutation"
 
-import type { CreateTodo, SetTodoDone, Todo, UpdateTodoTitle } from "./model"
+import type {
+  CreateTodo,
+  Label,
+  SetTodoDone,
+  Todo,
+  UpdateTodoTitle,
+} from "./model"
 
 import { todoFetch } from "../fetcher"
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
+
+export const getGetLabelsUrl = () => {
+  return `/labels`
+}
+
+export const getLabels = async (
+  options?: Parameters<typeof todoFetch>[1]
+): Promise<Label[]> => {
+  return todoFetch<Label[]>(getGetLabelsUrl(), {
+    ...options,
+    method: "GET",
+  })
+}
+
+export const getGetLabelsKey = () => [`/labels`] as const
+
+export type GetLabelsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getLabels>>
+>
+
+export const useGetLabels = <TError = unknown>(options?: {
+  swr?: SWRConfiguration<Awaited<ReturnType<typeof getLabels>>, TError> & {
+    swrKey?: Key
+    enabled?: boolean
+  }
+  request?: SecondParameter<typeof todoFetch>
+}) => {
+  const { swr: swrOptions, request: requestOptions } = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey =
+    swrOptions?.swrKey ?? (() => (isEnabled ? getGetLabelsKey() : null))
+  const swrFn = () => getLabels(requestOptions)
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(
+    swrKey,
+    swrFn,
+    swrOptions
+  )
+
+  return {
+    swrKey,
+    ...query,
+  }
+}
 
 export const getGetTodosUrl = () => {
   return `/todos`

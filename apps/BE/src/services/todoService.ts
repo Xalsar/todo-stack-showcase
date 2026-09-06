@@ -1,8 +1,7 @@
-import { Prisma, PrismaClient } from "@prisma/client"
+import { Prisma } from "@prisma/client"
 
+import { prisma } from "../lib/prisma.js"
 import type { CreateTodoDto, TodoDto } from "../schemas/todo.js"
-
-const prisma = new PrismaClient()
 
 export async function listTodos(): Promise<TodoDto[]> {
   const todos = await prisma.todo.findMany({ orderBy: { createdAt: "desc" } })

@@ -6,6 +6,7 @@
  */
 
 export * from "./createTodo"
+export * from "./label"
 export * from "./setTodoDone"
 export * from "./todo"
 export * from "./todoIdParams"
