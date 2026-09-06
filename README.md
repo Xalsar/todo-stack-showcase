@@ -1,5 +1,11 @@
 # My simple TypeScript stack to build FE apps with AI
 
+## Sub sections
+
+1- My stack
+2- My AI workflow
+3- Feature implementation
+
 ## Index
 
 - Part I: Presentation of my stack
@@ -47,7 +53,7 @@ Why not Docker?
 
 It's easier to install and more secure since it does not require root access.
 
-#### API validation: Zod + @asteasolutions/zod-to-openapi
+#### API validation: Zod
 
 Why?
 
