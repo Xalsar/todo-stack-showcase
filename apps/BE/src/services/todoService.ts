@@ -79,6 +79,7 @@ function toDto(todo: {
   id: string
   title: string
   done: boolean
+  labelId: string | null
   createdAt: Date
   updatedAt: Date
 }): TodoDto {
@@ -86,6 +87,7 @@ function toDto(todo: {
     id: todo.id,
     title: todo.title,
     done: todo.done,
+    labelId: todo.labelId,
     createdAt: todo.createdAt.toISOString(),
     updatedAt: todo.updatedAt.toISOString(),
   }

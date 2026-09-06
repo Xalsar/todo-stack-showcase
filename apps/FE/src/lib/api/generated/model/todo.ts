@@ -9,6 +9,8 @@ export interface Todo {
   id: string
   title: string
   done: boolean
+  /** @nullable */
+  labelId: string | null
   createdAt: string
   updatedAt: string
 }

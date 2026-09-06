@@ -19,6 +19,11 @@
           "done": {
             "type": "boolean"
           },
+          "labelId": {
+            "type": "string",
+            "nullable": true,
+            "format": "uuid"
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -28,7 +33,7 @@
             "format": "date-time"
           }
         },
-        "required": ["id", "title", "done", "createdAt", "updatedAt"]
+        "required": ["id", "title", "done", "labelId", "createdAt", "updatedAt"]
       },
       "CreateTodo": {
         "type": "object",
