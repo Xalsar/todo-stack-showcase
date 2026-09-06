@@ -118,7 +118,10 @@ function TodoItem({
                 <DropdownMenuLabel>Labels</DropdownMenuLabel>
                 {labels.length > 0 ? (
                   labels.map((label) => (
-                    <DropdownMenuItem key={label.id} disabled>
+                    <DropdownMenuItem
+                      key={label.id}
+                      disabled={label.id === todo.labelId}
+                    >
                       {label.name}
                     </DropdownMenuItem>
                   ))
