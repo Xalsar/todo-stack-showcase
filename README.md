@@ -1,5 +1,9 @@
 # My simple TypeScript stack to build FE apps with AI
 
+## How to run this app
+- pnpm run be:db:up
+- pnpm dev
+
 ## Sub sections
 
 1- My stack
