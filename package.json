@@ -2,7 +2,7 @@
   "name": "todo-stack-showcase",
   "private": true,
   "version": "0.0.0",
-  "packageManager": "pnpm@11.22.0",
+  "packageManager": "pnpm@12.3.4",
   "scripts": {
     "dev": "pnpm --filter BE --filter FE --parallel dev",
     "be:dev": "pnpm --filter BE dev",

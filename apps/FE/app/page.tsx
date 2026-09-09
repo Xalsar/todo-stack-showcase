@@ -1,4 +1,5 @@
 import { ThemeToggle } from "@/containers/theme-toggle"
+import { AuthGate } from "@/containers/auth/auth-gate"
 import { TodosList } from "@/containers/todos-list/todos-list"
 
 export default function Page() {
@@ -8,7 +9,9 @@ export default function Page() {
 
       <main className="flex w-full max-w-md min-w-0 flex-col gap-4">
         <h1 className="font-medium">Todos</h1>
-        <TodosList />
+        <AuthGate>
+          <TodosList />
+        </AuthGate>
       </main>
     </div>
   )
