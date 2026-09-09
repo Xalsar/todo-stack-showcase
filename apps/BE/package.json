@@ -10,6 +10,7 @@
     "db:up": "podman-compose -f compose.yaml up -d",
     "db:down": "podman-compose -f compose.yaml down",
     "migrate": "prisma migrate dev",
+    "migrate:name": "prisma migrate dev --name",
     "generate": "prisma generate",
     "studio": "prisma studio",
     "openapi": "tsx src/scripts/generate-openapi.ts",
