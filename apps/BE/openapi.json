@@ -24,6 +24,9 @@
             "nullable": true,
             "format": "uuid"
           },
+          "userId": {
+            "type": "string"
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -33,7 +36,15 @@
             "format": "date-time"
           }
         },
-        "required": ["id", "title", "done", "labelId", "createdAt", "updatedAt"]
+        "required": [
+          "id",
+          "title",
+          "done",
+          "labelId",
+          "userId",
+          "createdAt",
+          "updatedAt"
+        ]
       },
       "CreateTodo": {
         "type": "object",
@@ -95,6 +106,9 @@
           "name": {
             "type": "string"
           },
+          "userId": {
+            "type": "string"
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -104,7 +118,7 @@
             "format": "date-time"
           }
         },
-        "required": ["id", "name", "createdAt", "updatedAt"]
+        "required": ["id", "name", "userId", "createdAt", "updatedAt"]
       }
     },
     "parameters": {}

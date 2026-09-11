@@ -15,6 +15,7 @@ export const TodoSchema = registry.register(
     title: z.string(),
     done: z.boolean(),
     labelId: z.uuid().nullable(),
+    userId: z.string(),
     createdAt: z.iso.datetime(),
     updatedAt: z.iso.datetime(),
   })

@@ -11,6 +11,7 @@ export interface Todo {
   done: boolean
   /** @nullable */
   labelId: string | null
+  userId: string
   createdAt: string
   updatedAt: string
 }

@@ -36,8 +36,10 @@ registry.registerPath({
   },
 })
 
-todosRouter.get("/", async (_req, res) => {
-  const todos = await listTodos()
+todosRouter.get("/", async (req, res) => {
+  console.log("req.userId", req.userId)
+
+  const todos = await listTodos(req.userId as string)
   res.json(todos)
 })
 
@@ -74,7 +76,7 @@ todosRouter.post("/", async (req, res) => {
     return
   }
 
-  const todo = await createTodo(parsed.data)
+  const todo = await createTodo(parsed.data, req.userId as string)
   res.status(201).json(todo)
 })
 
@@ -121,7 +123,11 @@ todosRouter.patch("/:id/done", async (req, res) => {
     return
   }
 
-  const todo = await setTodoDone(params.data.id, body.data.done)
+  const todo = await setTodoDone(
+    params.data.id,
+    body.data.done,
+    req.userId as string
+  )
   if (!todo) {
     res.status(404).json({ error: "Todo not found" })
     return
@@ -173,7 +179,11 @@ todosRouter.patch("/:id/title", async (req, res) => {
     return
   }
 
-  const todo = await updateTodoTitle(params.data.id, body.data.title)
+  const todo = await updateTodoTitle(
+    params.data.id,
+    body.data.title,
+    req.userId as string
+  )
   if (!todo) {
     res.status(404).json({ error: "Todo not found" })
     return
@@ -225,7 +235,11 @@ todosRouter.patch("/:id/label", async (req, res) => {
     return
   }
 
-  const result = await updateTodoLabel(params.data.id, body.data.labelId)
+  const result = await updateTodoLabel(
+    params.data.id,
+    body.data.labelId,
+    req.userId as string
+  )
   if (!result.ok) {
     if (result.reason === "todo-not-found") {
       res.status(404).json({ error: "Todo not found" })
@@ -266,7 +280,7 @@ todosRouter.delete("/:id", async (req, res) => {
     return
   }
 
-  const deleted = await deleteTodo(params.data.id)
+  const deleted = await deleteTodo(params.data.id, req.userId as string)
   if (!deleted) {
     res.status(404).json({ error: "Todo not found" })
     return

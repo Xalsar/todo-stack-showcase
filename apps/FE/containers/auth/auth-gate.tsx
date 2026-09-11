@@ -3,14 +3,11 @@
 import type { ReactNode } from "react"
 import { useState } from "react"
 
-import { LogOut } from "lucide-react"
-
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
 import { SignInForm } from "@/containers/auth/components/sign-in-form"
 import { SignUpForm } from "@/containers/auth/components/sign-up-form"
 import { useSignIn } from "@/containers/auth/hooks/use-sign-in"
-import { useSignOut } from "@/containers/auth/hooks/use-sign-out"
 import { useSignUp } from "@/containers/auth/hooks/use-sign-up"
 import { authClient } from "@/src/lib/auth-client"
 
@@ -24,7 +21,6 @@ function AuthGate({ children }: AuthGateProps) {
 
   const signIn = useSignIn()
   const signUp = useSignUp()
-  const { onSignOut, isSigningOut } = useSignOut()
 
   if (isPending) {
     return (
@@ -35,28 +31,7 @@ function AuthGate({ children }: AuthGateProps) {
   }
 
   if (data?.session) {
-    return (
-      <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between gap-4">
-          <p className="text-sm text-muted-foreground">
-            Signed in as{" "}
-            <span className="font-medium text-foreground">
-              {data.user?.email ?? "…"}
-            </span>
-          </p>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onSignOut}
-            disabled={isSigningOut}
-          >
-            {isSigningOut ? <Spinner /> : <LogOut />}
-            Sign out
-          </Button>
-        </div>
-        {children}
-      </div>
-    )
+    return children
   }
 
   return (

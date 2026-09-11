@@ -7,6 +7,7 @@ export const LabelSchema = registry.register(
   z.object({
     id: z.uuid(),
     name: z.string(),
+    userId: z.string(),
     createdAt: z.iso.datetime(),
     updatedAt: z.iso.datetime(),
   })

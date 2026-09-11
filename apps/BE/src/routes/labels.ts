@@ -22,7 +22,7 @@ registry.registerPath({
   },
 })
 
-labelsRouter.get("/", async (_req, res) => {
-  const labels = await listLabels()
+labelsRouter.get("/", async (req, res) => {
+  const labels = await listLabels(req.userId as string)
   res.json(labels)
 })

@@ -17,6 +17,7 @@ export async function todoFetch<T>(
 ): Promise<T> {
   const res = await fetch(`${API_BASE_URL}${url}`, {
     ...options,
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
       ...options?.headers,

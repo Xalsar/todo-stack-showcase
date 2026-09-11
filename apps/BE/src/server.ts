@@ -6,6 +6,7 @@ import { auth } from "./lib/auth.js"
 
 import { labelsRouter } from "./routes/labels.js"
 import { todosRouter } from "./routes/todos.js"
+import { requireAuth } from "./middleware/requireAuth.js"
 
 const app = express()
 
@@ -19,8 +20,8 @@ app.use(
 app.all("/api/auth/{*any}", toNodeHandler(auth))
 
 app.use(express.json())
-app.use("/todos", todosRouter)
-app.use("/labels", labelsRouter)
+app.use("/todos", requireAuth, todosRouter)
+app.use("/labels", requireAuth, labelsRouter)
 
 const port = Number(process.env.PORT ?? 4000)
 

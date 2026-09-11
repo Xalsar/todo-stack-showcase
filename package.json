@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "packageManager": "pnpm@12.3.4",
   "scripts": {
-    "dev": "pnpm --filter BE --filter FE --parallel dev",
+    "dev": "concurrently -k --kill-signal=SIGTERM -n BE,FE -c auto \"pnpm --filter BE dev\" \"pnpm --filter FE dev\"",
     "be:dev": "pnpm --filter BE dev",
     "fe:dev": "pnpm --filter FE dev",
     "be:build": "pnpm --filter BE build",
@@ -25,6 +25,7 @@
     "format:check": "prettier --check ."
   },
   "devDependencies": {
+    "concurrently": "^10.0.5",
     "prettier": "^3.8.3",
     "prettier-plugin-tailwindcss": "^0.8.0"
   },
