@@ -28,11 +28,7 @@ model Label {
   name      String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   todos     Todo[]
-
-  @@index([userId])
 }
 
 model User {
@@ -46,7 +42,6 @@ model User {
   sessions      Session[]
   accounts      Account[]
   todos         Todo[]
-  labels        Label[]
 
   @@unique([email])
   @@map("user")

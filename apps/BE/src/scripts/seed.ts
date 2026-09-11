@@ -1,8 +1,8 @@
-import { auth } from "../lib/auth.js"
+import { randomUUID } from "node:crypto"
+
 import { prisma } from "../lib/prisma.js"
 
 const DEMO_EMAIL = "demo@example.com"
-const DEMO_PASSWORD = "test123456"
 
 const sampleTodos = [
   { title: "Buy groceries", done: false },
@@ -17,11 +17,12 @@ const sampleLabels = [{ name: "Work" }, { name: "Personal" }]
 async function main(): Promise<void> {
   await prisma.user.deleteMany({ where: { email: DEMO_EMAIL } })
 
-  const { user } = await auth.api.signUpEmail({
-    body: {
+  const user = await prisma.user.create({
+    data: {
+      id: randomUUID(),
       name: "Demo User",
       email: DEMO_EMAIL,
-      password: DEMO_PASSWORD,
+      emailVerified: true,
     },
   })
   console.log(`Seeded demo user ${user.id} (${DEMO_EMAIL}).`)
@@ -41,7 +42,7 @@ async function main(): Promise<void> {
 
   if (labelCount === 0) {
     const result = await prisma.label.createMany({
-      data: sampleLabels.map((label) => ({ ...label, userId: user.id })),
+      data: sampleLabels,
     })
     console.log(`Seeded ${result.count} label(s).`)
   } else {

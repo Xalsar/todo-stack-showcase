@@ -37,8 +37,6 @@ registry.registerPath({
 })
 
 todosRouter.get("/", async (req, res) => {
-  console.log("req.userId", req.userId)
-
   const todos = await listTodos(req.userId as string)
   res.json(todos)
 })

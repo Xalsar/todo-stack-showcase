@@ -106,9 +106,6 @@
           "name": {
             "type": "string"
           },
-          "userId": {
-            "type": "string"
-          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -118,7 +115,7 @@
             "format": "date-time"
           }
         },
-        "required": ["id", "name", "userId", "createdAt", "updatedAt"]
+        "required": ["id", "name", "createdAt", "updatedAt"]
       }
     },
     "parameters": {}
