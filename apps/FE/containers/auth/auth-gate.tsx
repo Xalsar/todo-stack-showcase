@@ -39,7 +39,7 @@ function AuthGate({ children }: AuthGateProps) {
         onClick={() =>
           authClient.signIn.social({
             provider: "google",
-            callbackURL: "/",
+            callbackURL: window.location.href,
           })
         }
       >
