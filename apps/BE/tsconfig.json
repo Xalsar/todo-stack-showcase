@@ -12,5 +12,6 @@
     "esModuleInterop": true,
     "resolveJsonModule": true
   },
-  "include": ["src/**/*", "prisma/**/*"]
+  "include": ["src/**/*", "prisma/**/*"],
+  "exclude": ["**/*.test.ts", "src/test/**", "dist", "node_modules"]
 }

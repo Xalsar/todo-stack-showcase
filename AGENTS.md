@@ -17,8 +17,29 @@ fetching. An orval-generated SWR client from the committed `apps/BE/openapi.json
   orval (config: `apps/BE/orval.config.ts`; hand-written fetcher: `apps/FE/src/lib/api/fetcher.ts`).
 - `pnpm dev` — BE + FE dev servers in parallel (still needs Postgres up and `apps/BE/.env` first; Ctrl+C stops both).
 - `pnpm be:dev` / `fe:dev` — run one side only (`fe:dev`: Next.js dev server, no env file needed).
-- No tests exist. Verify changes with `pnpm build` (BE: tsc strict; FE: `next build`, includes typecheck).
-  FE also has `lint` (eslint) / `typecheck` scripts; run via `pnpm --filter FE <script>`.
+- Tests run with Vitest (`pnpm test`) — see [Testing](#testing) below. Also verify changes with `pnpm build`
+  (BE: tsc strict; FE: `next build`, includes typecheck). FE has `lint` (eslint) / `typecheck` scripts;
+  run via `pnpm --filter FE <script>`.
+
+## Testing
+
+- `pnpm test` — run all tests once (BE + FE). `pnpm test:watch` — watch mode.
+  `pnpm test:coverage` — v8 coverage, enforced against thresholds (statements/lines/functions 95,
+  branches 90). `pnpm test:be` / `pnpm test:fe` — run one side only.
+- Config lives in `vitest.config.mts` (root workspace, `projects: [apps/BE, apps/FE]`) plus per-app
+  `vitest.config.ts`. Tests are co-located as `*.test.ts(x)` and import `describe`/`it`/`expect`/`vi`
+  from `vitest` explicitly — globals are **off**.
+- BE: unit tests mock `lib/prisma.js`; integration tests use `supertest` against the exported `app`
+  (`apps/BE/src/app.ts`) with `lib/auth.js` and `lib/prisma.js` mocked — **no database is required**.
+  `apps/BE/src/server.ts` only calls `listen`.
+- BE test files are excluded from the build (`tsconfig.json`) but type-checked by `pnpm be:typecheck`
+  (`tsconfig.test.json`).
+- FE: `jsdom` + Testing Library. `apps/FE/vitest.setup.ts` imports jest-dom and registers
+  `afterEach(cleanup)` (required because globals are off). The generated client and shadcn primitives
+  are mocked / excluded from coverage.
+- Coverage counts first-party code only (`coverage.include`/`exclude` in `vitest.config.mts`): vendored
+  `components/ui`, the generated client, `app/` routes, BE wiring (`server.ts`, `lib/`), and scripts are
+  excluded. `apps/BE/.env` is loaded by Vitest, so tests asserting env fallbacks must `vi.stubEnv`.
 
 ## Gotchas
 
@@ -48,6 +69,6 @@ fetching. An orval-generated SWR client from the committed `apps/BE/openapi.json
 
 - **Always run `pnpm format` first** (`prettier --write .`). Format before
   `git add`. Never commit or push unformatted changes.
-- Run the app(s)' checks after formatting: BE `pnpm be:build`; FE
-  `pnpm --filter FE typecheck` and `pnpm --filter FE lint`. Do not commit
+- Run the app(s)' checks after formatting: BE `pnpm be:build` + `pnpm be:typecheck`; FE
+  `pnpm --filter FE typecheck` and `pnpm --filter FE lint`; plus `pnpm test`. Do not commit
   failures. See the `format-before-commit` skill for the full workflow.

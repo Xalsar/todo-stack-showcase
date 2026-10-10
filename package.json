@@ -8,6 +8,7 @@
     "be:dev": "pnpm --filter BE dev",
     "fe:dev": "pnpm --filter FE dev",
     "be:build": "pnpm --filter BE build",
+    "be:typecheck": "pnpm --filter BE typecheck",
     "fe:build": "pnpm --filter FE build",
     "be:start": "pnpm --filter BE start",
     "fe:start": "pnpm --filter FE start",
@@ -21,13 +22,20 @@
     "be:openapi": "pnpm --filter BE openapi",
     "be:api-client": "pnpm --filter BE client:generate",
     "build": "pnpm -r build",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:be": "vitest run --project BE",
+    "test:fe": "vitest run --project FE",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
   "devDependencies": {
+    "@vitest/coverage-v8": "^5.0.3",
     "concurrently": "^10.0.5",
     "prettier": "^3.8.3",
-    "prettier-plugin-tailwindcss": "^0.8.0"
+    "prettier-plugin-tailwindcss": "^0.8.0",
+    "vitest": "^5.0.3"
   },
   "engines": {
     "node": ">=20"
