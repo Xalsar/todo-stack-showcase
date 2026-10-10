@@ -1,8 +1,14 @@
 node_modules
 .agents
 .next
+.next-e2e
 .turbo
 dist
 coverage
 pnpm-lock.yaml
 .pnpm-store
+test-results
+playwright-report
+blob-report
+.auth
+next-env.d.ts

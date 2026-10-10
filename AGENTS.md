@@ -41,6 +41,24 @@ fetching. An orval-generated SWR client from the committed `apps/BE/openapi.json
   `components/ui`, the generated client, `app/` routes, BE wiring (`server.ts`, `lib/`), and scripts are
   excluded. `apps/BE/.env` is loaded by Vitest, so tests asserting env fallbacks must `vi.stubEnv`.
 
+## End-to-end tests (Playwright)
+
+- `apps/e2e/` is a Playwright package (`E2E`). Run `pnpm test:e2e` (alias `pnpm e2e`) or `pnpm e2e:ui`.
+  One-time browser install: `pnpm e2e:install`.
+- Playwright owns its servers: the `webServer` runs `apps/e2e/scripts/dev-servers.mjs`, which starts BE on
+  `:4100` and FE on `:3100` against the dedicated `todos_e2e` database (`DATABASE_URL` injected), with the
+  FE build dir set to `.next-e2e` (`NEXT_DIST_DIR`) so it never shares `.next`/the dev lock with `pnpm dev`.
+  This means dev (`todos`, :3000/:4000) and e2e (`todos_e2e`, :3100/:4100) can run **concurrently**;
+  override ports via `E2E_BE_PORT`/`E2E_FE_PORT` (or the `E2E_*_URL`/`E2E_DATABASE_URL` vars).
+- Auth is Google-only, so tests don't drive the OAuth UI. The `setup` project runs `pnpm e2e:setup`
+  (create DB → `prisma migrate deploy` → `e2e:seed`). The seed uses a test-only better-auth instance with
+  the `testUtils()` plugin (`apps/BE/src/lib/auth.e2e.ts`, never imported by `app.ts`) to mint real signed
+  session cookies for seeded users and write them to `apps/e2e/.auth/{userA,userB}.json` (gitignored).
+  Projects: `setup`, `userA`, `userB` (storage states), `anon`.
+- DB scripts: `pnpm e2e:setup` = `e2e:db:create` (idempotent, via `podman exec todo-pg psql`) +
+  `e2e:db:migrate` + `e2e:seed`. The seed truncates and reseeds each run, so runs are deterministic.
+- Specs live under `apps/e2e/tests/{setup,anon,userA,userB}/`.
+
 ## Gotchas
 
 - Run the Prisma CLI through workspace scripts only (`pnpm be:migrate`, `pnpm be:generate`, or
@@ -72,3 +90,4 @@ fetching. An orval-generated SWR client from the committed `apps/BE/openapi.json
 - Run the app(s)' checks after formatting: BE `pnpm be:build` + `pnpm be:typecheck`; FE
   `pnpm --filter FE typecheck` and `pnpm --filter FE lint`; plus `pnpm test`. Do not commit
   failures. See the `format-before-commit` skill for the full workflow.
+- E2E changes: run `pnpm test:e2e` (needs Postgres up and `pnpm e2e:install` once; runs alongside `pnpm dev`).

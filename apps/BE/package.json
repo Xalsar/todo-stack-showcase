@@ -16,7 +16,8 @@
     "studio": "prisma studio",
     "openapi": "tsx src/scripts/generate-openapi.ts",
     "client:generate": "orval",
-    "seed": "tsx --env-file=.env src/scripts/seed.ts"
+    "seed": "tsx --env-file=.env src/scripts/seed.ts",
+    "e2e:seed": "tsx --env-file=.env src/scripts/e2e-seed.ts"
   },
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "^8.0.0",

@@ -51,7 +51,7 @@ function TodoItem({
   const label = labels.find((l) => l.id === todo.labelId)
 
   return (
-    <Item key={todo.id} variant="outline">
+    <Item key={todo.id} variant="outline" role="listitem">
       <ItemMedia variant="icon">
         <Button
           variant="ghost"
