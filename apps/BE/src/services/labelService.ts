@@ -1,12 +1,97 @@
-import { prisma } from "../lib/prisma.js"
-import type { LabelDto } from "../schemas/label.js"
+import { Prisma } from "@prisma/client"
 
-export async function listLabels(): Promise<LabelDto[]> {
+import { prisma } from "../lib/prisma.js"
+import type {
+  CreateLabelDto,
+  LabelDto,
+  UpdateLabelDto,
+} from "../schemas/label.js"
+
+export async function listLabels(userId: string): Promise<LabelDto[]> {
   const labels = await prisma.label.findMany({
+    where: { userId },
     orderBy: { name: "asc" },
   })
 
   return labels.map(toDto)
+}
+
+export type CreateLabelResult =
+  { ok: true; label: LabelDto } | { ok: false; reason: "duplicate-name" }
+
+export async function createLabel(
+  input: CreateLabelDto,
+  userId: string
+): Promise<CreateLabelResult> {
+  try {
+    const label = await prisma.label.create({
+      data: { name: input.name, userId },
+    })
+
+    return { ok: true, label: toDto(label) }
+  } catch (error) {
+    if (isUniqueConstraintError(error)) {
+      return { ok: false, reason: "duplicate-name" }
+    }
+    throw error
+  }
+}
+
+export type UpdateLabelResult =
+  | { ok: true; label: LabelDto }
+  | { ok: false; reason: "not-found" | "duplicate-name" }
+
+export async function updateLabel(
+  id: string,
+  input: UpdateLabelDto,
+  userId: string
+): Promise<UpdateLabelResult> {
+  try {
+    const label = await prisma.label.update({
+      where: { id, userId },
+      data: { name: input.name },
+    })
+
+    return { ok: true, label: toDto(label) }
+  } catch (error) {
+    if (isNotFoundError(error)) {
+      return { ok: false, reason: "not-found" }
+    }
+    if (isUniqueConstraintError(error)) {
+      return { ok: false, reason: "duplicate-name" }
+    }
+    throw error
+  }
+}
+
+export async function deleteLabel(
+  id: string,
+  userId: string
+): Promise<boolean> {
+  try {
+    await prisma.label.delete({ where: { id, userId } })
+
+    return true
+  } catch (error) {
+    if (isNotFoundError(error)) {
+      return false
+    }
+    throw error
+  }
+}
+
+function isNotFoundError(error: unknown): boolean {
+  return (
+    error instanceof Prisma.PrismaClientKnownRequestError &&
+    error.code === "P2025"
+  )
+}
+
+function isUniqueConstraintError(error: unknown): boolean {
+  return (
+    error instanceof Prisma.PrismaClientKnownRequestError &&
+    error.code === "P2002"
+  )
 }
 
 function toDto(label: {

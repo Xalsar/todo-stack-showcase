@@ -29,6 +29,19 @@ vi.mock("@/src/lib/api/generated/client", () => ({
   deleteTodosId: clientMock.deleteTodo,
 }))
 
+vi.mock("@/containers/labels/hooks/use-label-manager", () => ({
+  useLabelManager: () => ({
+    open: false,
+    onOpenChange: vi.fn(),
+    openDialog: vi.fn(),
+    closeDialog: vi.fn(),
+  }),
+}))
+
+vi.mock("@/containers/labels/hooks/use-labels", () => ({
+  useLabels: () => clientMock.labels,
+}))
+
 import { TodosList } from "./todos-list"
 
 const todo = {

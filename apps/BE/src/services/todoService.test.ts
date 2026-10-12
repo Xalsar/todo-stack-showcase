@@ -190,7 +190,7 @@ describe("updateTodoLabel", () => {
     const result = await updateTodoLabel(TODO_ID, LABEL_ID, USER_ID)
 
     expect(prismaMock.label.findFirst).toHaveBeenCalledWith({
-      where: { id: LABEL_ID },
+      where: { id: LABEL_ID, userId: USER_ID },
       select: { id: true },
     })
     expect(prismaMock.todo.update).toHaveBeenCalledWith({

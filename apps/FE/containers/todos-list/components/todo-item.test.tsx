@@ -30,6 +30,7 @@ function renderItem(
     onToggle: vi.fn().mockResolvedValue(undefined),
     onDelete: vi.fn().mockResolvedValue(undefined),
     onLabel: vi.fn().mockResolvedValue(undefined),
+    onManageLabels: vi.fn(),
     onStartEdit: vi.fn(),
     onCancelEdit: vi.fn(),
     onSubmitEdit: vi.fn().mockResolvedValue(undefined),
@@ -200,5 +201,16 @@ describe("TodoItem", () => {
     expect(
       await screen.findByRole("menuitem", { name: "No labels" })
     ).toHaveAttribute("aria-disabled", "true")
+  })
+
+  it("opens the label manager from the dropdown", async () => {
+    const { onManageLabels, user } = renderItem({ labels: [workLabel] })
+
+    await user.click(screen.getByRole("button", { name: "View labels" }))
+    await user.click(
+      await screen.findByRole("menuitem", { name: "Manage labels…" })
+    )
+
+    expect(onManageLabels).toHaveBeenCalledTimes(1)
   })
 })

@@ -11,10 +11,12 @@ import useSWRMutation from "swr/mutation"
 import type { SWRMutationConfiguration } from "swr/mutation"
 
 import type {
+  CreateLabel,
   CreateTodo,
   Label,
   SetTodoDone,
   Todo,
+  UpdateLabel,
   UpdateTodoLabel,
   UpdateTodoTitle,
 } from "./model"
@@ -60,6 +62,171 @@ export const useGetLabels = <TError = unknown>(options?: {
     swrFn,
     swrOptions
   )
+
+  return {
+    swrKey,
+    ...query,
+  }
+}
+
+export const getPostLabelsUrl = () => {
+  return `/labels`
+}
+
+export const postLabels = async (
+  createLabel: CreateLabel,
+  options?: Parameters<typeof todoFetch>[1]
+): Promise<Label> => {
+  return todoFetch<Label>(getPostLabelsUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createLabel),
+  })
+}
+
+export const getPostLabelsMutationFetcher = (
+  options?: SecondParameter<typeof todoFetch>
+) => {
+  return (_: Key, { arg }: { arg: CreateLabel }) => {
+    return postLabels(arg, options)
+  }
+}
+export const getPostLabelsMutationKey = () => [`/labels`] as const
+
+export type PostLabelsMutationResult = NonNullable<
+  Awaited<ReturnType<typeof postLabels>>
+>
+
+export const usePostLabels = <TError = void>(options?: {
+  swr?: SWRMutationConfiguration<
+    Awaited<ReturnType<typeof postLabels>>,
+    TError,
+    Key,
+    CreateLabel,
+    Awaited<ReturnType<typeof postLabels>>
+  > & { swrKey?: string }
+  request?: SecondParameter<typeof todoFetch>
+}) => {
+  const { swr: swrOptions, request: requestOptions } = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getPostLabelsMutationKey()
+  const swrFn = getPostLabelsMutationFetcher(requestOptions)
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query,
+  }
+}
+
+export const getPatchLabelsIdUrl = (id: string) => {
+  return `/labels/${id}`
+}
+
+export const patchLabelsId = async (
+  id: string,
+  updateLabel: UpdateLabel,
+  options?: Parameters<typeof todoFetch>[1]
+): Promise<Label> => {
+  return todoFetch<Label>(getPatchLabelsIdUrl(id), {
+    ...options,
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(updateLabel),
+  })
+}
+
+export const getPatchLabelsIdMutationFetcher = (
+  id: string,
+  options?: SecondParameter<typeof todoFetch>
+) => {
+  return (_: Key, { arg }: { arg: UpdateLabel }) => {
+    return patchLabelsId(id, arg, options)
+  }
+}
+export const getPatchLabelsIdMutationKey = (id: string) =>
+  [`/labels/${id}`] as const
+
+export type PatchLabelsIdMutationResult = NonNullable<
+  Awaited<ReturnType<typeof patchLabelsId>>
+>
+
+export const usePatchLabelsId = <TError = void>(
+  id: string,
+  options?: {
+    swr?: SWRMutationConfiguration<
+      Awaited<ReturnType<typeof patchLabelsId>>,
+      TError,
+      Key,
+      UpdateLabel,
+      Awaited<ReturnType<typeof patchLabelsId>>
+    > & { swrKey?: string }
+    request?: SecondParameter<typeof todoFetch>
+  }
+) => {
+  const { swr: swrOptions, request: requestOptions } = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getPatchLabelsIdMutationKey(id)
+  const swrFn = getPatchLabelsIdMutationFetcher(id, requestOptions)
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query,
+  }
+}
+
+export const getDeleteLabelsIdUrl = (id: string) => {
+  return `/labels/${id}`
+}
+
+export const deleteLabelsId = async (
+  id: string,
+  options?: Parameters<typeof todoFetch>[1]
+): Promise<void> => {
+  return todoFetch<void>(getDeleteLabelsIdUrl(id), {
+    ...options,
+    method: "DELETE",
+  })
+}
+
+export const getDeleteLabelsIdMutationFetcher = (
+  id: string,
+  options?: SecondParameter<typeof todoFetch>
+) => {
+  return (_: Key, __: { arg: Arguments }) => {
+    return deleteLabelsId(id, options)
+  }
+}
+export const getDeleteLabelsIdMutationKey = (id: string) =>
+  [`/labels/${id}`] as const
+
+export type DeleteLabelsIdMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteLabelsId>>
+>
+
+export const useDeleteLabelsId = <TError = void>(
+  id: string,
+  options?: {
+    swr?: SWRMutationConfiguration<
+      Awaited<ReturnType<typeof deleteLabelsId>>,
+      TError,
+      Key,
+      Arguments,
+      Awaited<ReturnType<typeof deleteLabelsId>>
+    > & { swrKey?: string }
+    request?: SecondParameter<typeof todoFetch>
+  }
+) => {
+  const { swr: swrOptions, request: requestOptions } = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getDeleteLabelsIdMutationKey(id)
+  const swrFn = getDeleteLabelsIdMutationFetcher(id, requestOptions)
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,

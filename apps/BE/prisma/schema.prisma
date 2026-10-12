@@ -15,7 +15,7 @@ model Todo {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   labelId   String?  @db.Uuid
-  label     Label?   @relation(fields: [labelId], references: [id])
+  label     Label?   @relation(fields: [labelId], references: [id], onDelete: SetNull)
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -28,7 +28,12 @@ model Label {
   name      String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   todos     Todo[]
+
+  @@unique([userId, name])
+  @@index([userId])
 }
 
 model User {
@@ -42,6 +47,7 @@ model User {
   sessions      Session[]
   accounts      Account[]
   todos         Todo[]
+  labels        Label[]
 
   @@unique([email])
   @@map("user")

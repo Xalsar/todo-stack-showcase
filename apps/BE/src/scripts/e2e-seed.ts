@@ -54,6 +54,10 @@ async function seedUser(
     data: todoTitles.map((title) => ({ title, userId: user.id })),
   })
 
+  await prisma.label.createMany({
+    data: LABELS.map((name) => ({ name, userId: user.id })),
+  })
+
   return user.id
 }
 
@@ -74,8 +78,6 @@ async function main(): Promise<void> {
 
   const userAId = await seedUser(USER_A, TODOS_A)
   const userBId = await seedUser(USER_B, TODOS_B)
-
-  await prisma.label.createMany({ data: LABELS.map((name) => ({ name })) })
 
   const ctx = await e2eAuth.$context
 

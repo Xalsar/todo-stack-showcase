@@ -12,4 +12,28 @@ export const LabelSchema = registry.register(
   })
 )
 
+export const CreateLabelSchema = registry.register(
+  "CreateLabel",
+  z.object({
+    name: z.string().min(1),
+  })
+)
+
+export const UpdateLabelSchema = registry.register(
+  "UpdateLabel",
+  z.object({
+    name: z.string().min(1),
+  })
+)
+
+export const LabelIdParamsSchema = registry.register(
+  "LabelIdParams",
+  z.object({
+    id: z.uuid(),
+  })
+)
+
 export type LabelDto = z.infer<typeof LabelSchema>
+export type CreateLabelDto = z.infer<typeof CreateLabelSchema>
+export type UpdateLabelDto = z.infer<typeof UpdateLabelSchema>
+export type LabelIdParams = z.infer<typeof LabelIdParamsSchema>

@@ -1,6 +1,6 @@
 "use client"
 
-import { Check, Circle, Pencil, Tags, Trash2 } from "lucide-react"
+import { Check, Circle, Pencil, Settings2, Tags, Trash2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -9,6 +9,7 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
@@ -31,6 +32,7 @@ type TodoItemProps = {
   onToggle: (id: string, done: boolean) => Promise<void>
   onDelete: (id: string) => Promise<void>
   onLabel: (id: string, labelId: string | null) => Promise<void>
+  onManageLabels: () => void
   onStartEdit: () => void
   onCancelEdit: () => void
   onSubmitEdit: (title: string) => Promise<void>
@@ -44,6 +46,7 @@ function TodoItem({
   onToggle,
   onDelete,
   onLabel,
+  onManageLabels,
   onStartEdit,
   onCancelEdit,
   onSubmitEdit,
@@ -138,6 +141,11 @@ function TodoItem({
                   <DropdownMenuItem disabled>No labels</DropdownMenuItem>
                 )}
               </DropdownMenuGroup>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={onManageLabels}>
+                <Settings2 />
+                Manage labels…
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
           <Button

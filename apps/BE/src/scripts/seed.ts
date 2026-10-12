@@ -42,7 +42,7 @@ async function main(): Promise<void> {
 
   if (labelCount === 0) {
     const result = await prisma.label.createMany({
-      data: sampleLabels,
+      data: sampleLabels.map((label) => ({ ...label, userId: user.id })),
     })
     console.log(`Seeded ${result.count} label(s).`)
   } else {

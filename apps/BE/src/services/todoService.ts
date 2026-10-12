@@ -80,7 +80,7 @@ export async function updateTodoLabel(
 ): Promise<UpdateTodoLabelResult> {
   if (labelId !== null) {
     const label = await prisma.label.findFirst({
-      where: { id: labelId },
+      where: { id: labelId, userId },
       select: { id: true },
     })
     if (!label) {

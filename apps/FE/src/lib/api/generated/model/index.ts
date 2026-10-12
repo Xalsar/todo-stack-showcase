@@ -5,10 +5,13 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from "./createLabel"
 export * from "./createTodo"
 export * from "./label"
+export * from "./labelIdParams"
 export * from "./setTodoDone"
 export * from "./todo"
 export * from "./todoIdParams"
+export * from "./updateLabel"
 export * from "./updateTodoLabel"
 export * from "./updateTodoTitle"
