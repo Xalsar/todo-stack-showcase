@@ -33,7 +33,7 @@ vi.mock("@/src/lib/api/generated/client", () => ({
 import {
   LabelManagerContext,
   type LabelManagerContextValue,
-} from "../hooks/use-label-manager"
+} from "./hooks/use-label-manager"
 import { LabelManager } from "./label-manager"
 
 const work: Label = {

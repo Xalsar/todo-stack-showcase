@@ -18,13 +18,13 @@ import {
 } from "@/components/ui/empty"
 import { Skeleton } from "@/components/ui/skeleton"
 
-import { useCreateLabel } from "../hooks/use-create-label"
-import { useDeleteLabel } from "../hooks/use-delete-label"
-import { useLabelManager } from "../hooks/use-label-manager"
-import { useLabels } from "../hooks/use-labels"
-import { useRenameLabel } from "../hooks/use-rename-label"
-import { LabelForm } from "./label-form"
-import { LabelList } from "./label-list"
+import { useCreateLabel } from "./hooks/use-create-label"
+import { useDeleteLabel } from "./hooks/use-delete-label"
+import { useLabelManager } from "./hooks/use-label-manager"
+import { useLabels } from "./hooks/use-labels"
+import { useRenameLabel } from "./hooks/use-rename-label"
+import { LabelForm } from "./components/label-form"
+import { LabelList } from "./components/label-list"
 
 function LabelManager() {
   const { open, onOpenChange } = useLabelManager()

@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useState, type ReactNode } from "react"
 
-import { LabelManager } from "./components/label-manager"
+import { LabelManager } from "./label-manager"
 import {
   LabelManagerContext,
   type LabelManagerContextValue,
