@@ -2,6 +2,7 @@
 
 import { Inbox } from "lucide-react"
 
+import { AddForm } from "@/components/add-form"
 import {
   Empty,
   EmptyDescription,
@@ -13,7 +14,6 @@ import { ItemGroup } from "@/components/ui/item"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useLabelManager } from "@/containers/labels/hooks/use-label-manager"
 import { useLabels } from "@/containers/labels/hooks/use-labels"
-import { AddTodoForm } from "@/containers/todos-list/components/add-todo-form"
 import { TodoItem } from "@/containers/todos-list/components/todo-item"
 import { useCreateTodo } from "@/containers/todos-list/hooks/use-create-todo"
 import { useDeleteTodo } from "@/containers/todos-list/hooks/use-delete-todo"
@@ -41,7 +41,12 @@ function TodosList() {
 
   return (
     <div className="flex flex-col gap-4">
-      <AddTodoForm
+      <AddForm
+        label="New todo"
+        placeholder="Add a todo…"
+        submitLabel="Add todo"
+        requiredMessage="Title is required"
+        failureMessage="Failed to create todo. Is the backend running?"
         onSubmit={create.onSubmit}
         isSubmitting={create.isSubmitting}
         failed={create.failed}

@@ -2,6 +2,7 @@
 
 import { Tag } from "lucide-react"
 
+import { AddForm } from "@/components/add-form"
 import {
   Dialog,
   DialogContent,
@@ -18,13 +19,13 @@ import {
 } from "@/components/ui/empty"
 import { Skeleton } from "@/components/ui/skeleton"
 
+import { LabelList } from "./components/label-list"
 import { useCreateLabel } from "./hooks/use-create-label"
 import { useDeleteLabel } from "./hooks/use-delete-label"
 import { useLabelManager } from "./hooks/use-label-manager"
 import { useLabels } from "./hooks/use-labels"
 import { useRenameLabel } from "./hooks/use-rename-label"
-import { LabelForm } from "./components/label-form"
-import { LabelList } from "./components/label-list"
+import { isNameConflict } from "./label-errors"
 
 function LabelManager() {
   const { open, onOpenChange } = useLabelManager()
@@ -43,10 +44,20 @@ function LabelManager() {
           </DialogDescription>
         </DialogHeader>
 
-        <LabelForm
+        <AddForm
+          label="New label"
+          placeholder="Add a label…"
+          submitLabel="Add label"
+          requiredMessage="Name is required"
+          failureMessage="Failed to save label. Is the backend running?"
           onSubmit={onCreate}
           isSubmitting={isSubmitting}
           failed={failed}
+          mapError={(error) =>
+            isNameConflict(error)
+              ? "A label with this name already exists"
+              : "Failed to save label"
+          }
         />
 
         {isLoading ? (
