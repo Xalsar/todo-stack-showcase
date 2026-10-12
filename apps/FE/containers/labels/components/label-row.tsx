@@ -5,10 +5,12 @@ import { useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import { Item, ItemActions, ItemContent, ItemTitle } from "@/components/ui/item"
+import { InlineEditForm } from "@/components/inline-edit-form"
 import type { Label } from "@/src/lib/api/generated/model"
 
+import { cn } from "@/lib/utils"
+import { isNameConflict } from "../label-errors"
 import { DeleteLabelDialog } from "./delete-label-dialog"
-import { LabelForm } from "./label-form"
 
 type LabelRowProps = {
   label: Label
@@ -31,16 +33,23 @@ function LabelRow({
     return (
       <Item variant="outline" role="listitem">
         <ItemContent>
-          <LabelForm
-            initialName={label.name}
+          <InlineEditForm
+            defaultValue={label.name}
+            inputLabel="Edit label name"
+            saveLabel="Save label"
+            cancelLabel="Cancel"
+            requiredMessage="Name is required"
             isSubmitting={isRenaming}
-            submitLabel="Save label"
             onCancel={() => setEditing(false)}
             onSubmit={async (name) => {
               const ok = await onRename(label.id, name)
               if (ok) setEditing(false)
-              return ok
             }}
+            mapError={(error) =>
+              isNameConflict(error)
+                ? "A label with this name already exists"
+                : "Failed to save label"
+            }
           />
         </ItemContent>
       </Item>
@@ -50,7 +59,25 @@ function LabelRow({
   return (
     <Item variant="outline" role="listitem">
       <ItemContent>
-        <ItemTitle>{label.name}</ItemTitle>
+        <ItemTitle
+          role="button"
+          tabIndex={0}
+          aria-disabled={isDeleting || undefined}
+          onClick={() => {
+            if (!isDeleting) setEditing(true)
+          }}
+          onKeyDown={(e) => {
+            if ((e.key === "Enter" || e.key === " ") && !isDeleting) {
+              e.preventDefault()
+              setEditing(true)
+            }
+          }}
+          className={cn(
+            "-mx-1 w-full cursor-pointer rounded-sm px-1 hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+          )}
+        >
+          {label.name}
+        </ItemTitle>
       </ItemContent>
       <ItemActions>
         <Button

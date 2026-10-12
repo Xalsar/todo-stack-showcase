@@ -6,47 +6,53 @@ import { useEffect, useRef } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 
+import { Button } from "@/components/ui/button"
 import { Field, FieldError, FieldGroup } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
 
-const editTodoFormSchema = z.object({
-  title: z.string().trim().min(1, "Title is required"),
-})
-
-type EditTodoFormValues = z.infer<typeof editTodoFormSchema>
-
-type EditTodoFormProps = {
-  initialTitle: string
+type InlineEditFormProps = {
+  defaultValue: string
+  inputLabel: string
+  saveLabel: string
+  cancelLabel: string
+  requiredMessage: string
   isSubmitting: boolean
-  onSubmit: (title: string) => Promise<void>
+  onSubmit: (value: string) => Promise<void>
   onCancel: () => void
+  mapError?: (error: unknown) => string | undefined
 }
 
-function EditTodoForm({
-  initialTitle,
+function InlineEditForm({
+  defaultValue,
+  inputLabel,
+  saveLabel,
+  cancelLabel,
+  requiredMessage,
   isSubmitting,
   onSubmit,
   onCancel,
-}: EditTodoFormProps) {
+  mapError,
+}: InlineEditFormProps) {
   const formRef = useRef<HTMLFormElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
-  const form = useForm<EditTodoFormValues>({
-    resolver: zodResolver(editTodoFormSchema),
-    defaultValues: { title: initialTitle },
-  })
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors },
-  } = form
+  } = useForm<{ value: string }>({
+    resolver: zodResolver(
+      z.object({ value: z.string().trim().min(1, requiredMessage) })
+    ),
+    defaultValues: { value: defaultValue },
+  })
 
   const {
     ref: registerRef,
     onBlur: registerOnBlur,
     ...registerProps
-  } = register("title")
+  } = register("value")
 
   useEffect(() => {
     inputRef.current?.focus()
@@ -63,19 +69,26 @@ function EditTodoForm({
     if (!formRef.current?.contains(e.relatedTarget as Node | null)) onCancel()
   }
 
-  const invalid = Boolean(errors.title)
+  const invalid = Boolean(errors.value)
 
   return (
     <form
       ref={formRef}
-      onSubmit={handleSubmit(async ({ title }) => onSubmit(title))}
+      onSubmit={handleSubmit(async ({ value }) => {
+        try {
+          await onSubmit(value)
+        } catch (error) {
+          const message = mapError?.(error)
+          if (message) setError("value", { message })
+        }
+      })}
       className="flex flex-1 items-center gap-1.5"
       noValidate
     >
       <FieldGroup className="flex-1 gap-0">
         <Field data-invalid={invalid || undefined}>
           <Input
-            aria-label="Edit todo title"
+            aria-label={inputLabel}
             aria-invalid={invalid || undefined}
             disabled={isSubmitting}
             className="h-7"
@@ -83,7 +96,7 @@ function EditTodoForm({
             onBlur={handleBlur}
             {...registerProps}
           />
-          <FieldError errors={[errors.title]} />
+          <FieldError errors={[errors.value]} />
         </Field>
       </FieldGroup>
       <Button
@@ -91,7 +104,7 @@ function EditTodoForm({
         variant="ghost"
         size="icon-sm"
         disabled={isSubmitting}
-        aria-label="Save todo"
+        aria-label={saveLabel}
       >
         {isSubmitting ? <Spinner /> : <Check />}
       </Button>
@@ -101,7 +114,7 @@ function EditTodoForm({
         size="icon-sm"
         onClick={onCancel}
         disabled={isSubmitting}
-        aria-label="Cancel editing"
+        aria-label={cancelLabel}
         className="text-muted-foreground"
       >
         <X />
@@ -110,4 +123,4 @@ function EditTodoForm({
   )
 }
 
-export { EditTodoForm }
+export { InlineEditForm }

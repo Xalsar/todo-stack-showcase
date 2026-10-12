@@ -75,32 +75,6 @@ describe("LabelForm", () => {
     )
   })
 
-  it("supports rename mode with a prefilled value and cancel", async () => {
-    const onSubmit = vi.fn().mockResolvedValue(true)
-    const onCancel = vi.fn()
-    const user = userEvent.setup()
-    render(
-      <LabelForm
-        initialName="Work"
-        submitLabel="Save label"
-        onSubmit={onSubmit}
-        onCancel={onCancel}
-      />
-    )
-
-    const input = screen.getByLabelText("New label")
-    expect(input).toHaveValue("Work")
-
-    await user.clear(input)
-    await user.type(input, "Office")
-    await user.click(screen.getByRole("button", { name: "Save label" }))
-
-    expect(onSubmit).toHaveBeenCalledWith("Office")
-
-    await user.click(screen.getByRole("button", { name: "Cancel" }))
-    expect(onCancel).toHaveBeenCalledTimes(1)
-  })
-
   it("disables the controls while submitting", () => {
     renderForm({ isSubmitting: true })
 

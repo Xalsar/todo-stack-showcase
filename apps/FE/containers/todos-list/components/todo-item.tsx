@@ -19,7 +19,7 @@ import {
   ItemMedia,
   ItemTitle,
 } from "@/components/ui/item"
-import { EditTodoForm } from "@/containers/todos-list/components/edit-todo-form"
+import { InlineEditForm } from "@/components/inline-edit-form"
 import type { Label, Todo } from "@/src/lib/api/generated/model"
 
 import { cn } from "@/lib/utils"
@@ -74,8 +74,12 @@ function TodoItem({
       </ItemMedia>
       <ItemContent>
         {editing ? (
-          <EditTodoForm
-            initialTitle={todo.title}
+          <InlineEditForm
+            defaultValue={todo.title}
+            inputLabel="Edit todo title"
+            saveLabel="Save todo"
+            cancelLabel="Cancel editing"
+            requiredMessage="Title is required"
             isSubmitting={isMutating}
             onSubmit={(title) => onSubmitEdit(title)}
             onCancel={onCancelEdit}
@@ -84,9 +88,12 @@ function TodoItem({
           <ItemTitle
             role="button"
             tabIndex={0}
-            onClick={onStartEdit}
+            aria-disabled={isMutating || undefined}
+            onClick={() => {
+              if (!isMutating) onStartEdit()
+            }}
             onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
+              if ((e.key === "Enter" || e.key === " ") && !isMutating) {
                 e.preventDefault()
                 onStartEdit()
               }

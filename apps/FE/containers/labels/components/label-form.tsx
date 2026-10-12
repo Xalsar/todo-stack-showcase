@@ -1,8 +1,8 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Plus, X } from "lucide-react"
-import { useEffect, useId, useRef } from "react"
+import { Plus } from "lucide-react"
+import { useId } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 
@@ -27,23 +27,14 @@ type LabelFormProps = {
   onSubmit: (name: string) => Promise<boolean>
   isSubmitting?: boolean
   failed?: boolean
-  initialName?: string
-  inputLabel?: string
-  submitLabel?: string
-  onCancel?: () => void
 }
 
 function LabelForm({
   onSubmit,
   isSubmitting = false,
   failed = false,
-  initialName = "",
-  inputLabel = "New label",
-  submitLabel = "Add label",
-  onCancel,
 }: LabelFormProps) {
   const fieldId = useId()
-  const inputRef = useRef<HTMLInputElement>(null)
   const {
     register,
     handleSubmit,
@@ -52,22 +43,8 @@ function LabelForm({
     formState: { errors },
   } = useForm<LabelFormValues>({
     resolver: zodResolver(labelFormSchema),
-    defaultValues: { name: initialName },
+    defaultValues: { name: "" },
   })
-
-  const { ref: registerRef, ...registerProps } = register("name")
-
-  useEffect(() => {
-    if (initialName) {
-      inputRef.current?.focus()
-      inputRef.current?.select()
-    }
-  }, [initialName])
-
-  const ref = (element: HTMLInputElement | null) => {
-    inputRef.current = element
-    registerRef(element)
-  }
 
   const invalid = Boolean(errors.name)
 
@@ -76,7 +53,7 @@ function LabelForm({
       onSubmit={handleSubmit(async ({ name }) => {
         try {
           const ok = await onSubmit(name)
-          if (ok && !initialName) reset({ name: "" })
+          if (ok) reset({ name: "" })
         } catch (error) {
           setError("name", {
             message: isNameConflict(error)
@@ -89,36 +66,23 @@ function LabelForm({
     >
       <FieldGroup>
         <Field data-invalid={invalid || undefined}>
-          <FieldLabel htmlFor={fieldId}>{inputLabel}</FieldLabel>
+          <FieldLabel htmlFor={fieldId}>New label</FieldLabel>
           <div className="flex items-center gap-2">
             <Input
               id={fieldId}
               autoComplete="off"
               aria-invalid={invalid || undefined}
               disabled={isSubmitting}
-              ref={ref}
-              {...registerProps}
+              {...register("name")}
             />
             <Button
               type="submit"
               size="icon-sm"
               disabled={isSubmitting}
-              aria-label={submitLabel}
+              aria-label="Add label"
             >
               {isSubmitting ? <Spinner /> : <Plus />}
             </Button>
-            {onCancel ? (
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-sm"
-                onClick={onCancel}
-                disabled={isSubmitting}
-                aria-label="Cancel"
-              >
-                <X />
-              </Button>
-            ) : null}
           </div>
           <FieldError errors={[errors.name]} />
         </Field>

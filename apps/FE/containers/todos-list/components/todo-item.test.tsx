@@ -125,6 +125,24 @@ describe("TodoItem", () => {
     expect(onStartEdit).not.toHaveBeenCalled()
   })
 
+  it("does not start editing from the title while mutating", async () => {
+    const { onStartEdit, user } = renderItem({ isMutating: true })
+
+    await user.click(screen.getByText("Write tests"))
+
+    expect(onStartEdit).not.toHaveBeenCalled()
+  })
+
+  it("does not start editing from the keyboard while mutating", () => {
+    const { onStartEdit } = renderItem({ isMutating: true })
+
+    const title = screen.getByText("Write tests")
+    fireEvent.keyDown(title, { key: "Enter" })
+    fireEvent.keyDown(title, { key: " " })
+
+    expect(onStartEdit).not.toHaveBeenCalled()
+  })
+
   it("renders the edit form while editing", async () => {
     const { onSubmitEdit, onCancelEdit, user } = renderItem({ editing: true })
 
