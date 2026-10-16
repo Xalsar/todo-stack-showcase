@@ -4,8 +4,15 @@ import { Pencil, Trash2 } from "lucide-react"
 import { useState } from "react"
 
 import { Button } from "@/components/ui/button"
-import { Item, ItemActions, ItemContent, ItemTitle } from "@/components/ui/item"
+import {
+  Item,
+  ItemActions,
+  ItemContent,
+  ItemMedia,
+  ItemTitle,
+} from "@/components/ui/item"
 import { InlineEditForm } from "@/components/inline-edit-form"
+import { RadioGroupItem } from "@/components/ui/radio-group"
 import type { Label } from "@/src/lib/api/generated/model"
 
 import { cn } from "@/lib/utils"
@@ -18,6 +25,7 @@ type LabelRowProps = {
   isDeleting: boolean
   onRename: (id: string, name: string) => Promise<boolean>
   onDelete: (id: string) => Promise<void>
+  value?: string
 }
 
 function LabelRow({
@@ -26,6 +34,7 @@ function LabelRow({
   isDeleting,
   onRename,
   onDelete,
+  value,
 }: LabelRowProps) {
   const [editing, setEditing] = useState(false)
 
@@ -57,7 +66,12 @@ function LabelRow({
   }
 
   return (
-    <Item variant="outline" role="listitem">
+    <Item variant="outline" role={value === undefined ? "listitem" : undefined}>
+      {value !== undefined ? (
+        <ItemMedia variant="icon">
+          <RadioGroupItem value={value} aria-label={label.name} />
+        </ItemMedia>
+      ) : null}
       <ItemContent>
         <ItemTitle
           role="button"

@@ -4,13 +4,13 @@ import { Tags } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 
-import { useLabelManager } from "./hooks/use-label-manager"
+import { useLabelManager } from "./label-manager"
 
 function LabelManagerTrigger() {
-  const { openDialog } = useLabelManager()
+  const { openLabelManager } = useLabelManager()
 
   return (
-    <Button variant="ghost" onClick={openDialog}>
+    <Button variant="ghost" onClick={() => openLabelManager()}>
       <Tags />
       Labels
     </Button>

@@ -1,9 +1,18 @@
 "use client"
 
-import { ItemGroup } from "@/components/ui/item"
+import {
+  Item,
+  ItemContent,
+  ItemGroup,
+  ItemMedia,
+  ItemTitle,
+} from "@/components/ui/item"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import type { Label } from "@/src/lib/api/generated/model"
 
 import { LabelRow } from "./label-row"
+
+const NO_LABEL = "none"
 
 type LabelListProps = {
   labels: Label[]
@@ -11,6 +20,8 @@ type LabelListProps = {
   deletingId: string | null
   onRename: (id: string, name: string) => Promise<boolean>
   onDelete: (id: string) => Promise<void>
+  selectedId?: string | null
+  onSelect?: (value: string | null) => void
 }
 
 function LabelList({
@@ -19,9 +30,45 @@ function LabelList({
   deletingId,
   onRename,
   onDelete,
+  selectedId,
+  onSelect,
 }: LabelListProps) {
+  const selectable = selectedId !== undefined
+
+  if (!selectable) {
+    return (
+      <ItemGroup>
+        {labels.map((label) => (
+          <LabelRow
+            key={label.id}
+            label={label}
+            isRenaming={renamingId === label.id}
+            isDeleting={deletingId === label.id}
+            onRename={onRename}
+            onDelete={onDelete}
+          />
+        ))}
+      </ItemGroup>
+    )
+  }
+
   return (
-    <ItemGroup>
+    <RadioGroup
+      aria-label="Label"
+      className="gap-4"
+      value={selectedId ?? NO_LABEL}
+      onValueChange={(value) =>
+        onSelect?.(value === NO_LABEL ? null : (value as string))
+      }
+    >
+      <Item variant="outline">
+        <ItemMedia variant="icon">
+          <RadioGroupItem value={NO_LABEL} aria-label="No label" />
+        </ItemMedia>
+        <ItemContent>
+          <ItemTitle>No label</ItemTitle>
+        </ItemContent>
+      </Item>
       {labels.map((label) => (
         <LabelRow
           key={label.id}
@@ -30,9 +77,10 @@ function LabelList({
           isDeleting={deletingId === label.id}
           onRename={onRename}
           onDelete={onDelete}
+          value={label.id}
         />
       ))}
-    </ItemGroup>
+    </RadioGroup>
   )
 }
 

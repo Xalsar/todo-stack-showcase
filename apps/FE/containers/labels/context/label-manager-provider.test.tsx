@@ -32,7 +32,7 @@ vi.mock("@/src/lib/api/generated/client", () => ({
 
 import { LabelManagerProvider } from "./label-manager-provider"
 import { LabelManagerTrigger } from "./label-manager-trigger"
-import { useLabelManager } from "./hooks/use-label-manager"
+import { useLabelManager } from "./label-manager"
 
 const work: Label = {
   id: "1",
@@ -42,13 +42,13 @@ const work: Label = {
 }
 
 function Probe() {
-  const { open, openDialog, closeDialog } = useLabelManager()
+  const { open, openLabelManager, closeLabelManager } = useLabelManager()
 
   return (
     <>
       <span data-testid="state">{open ? "open" : "closed"}</span>
-      <Button onClick={openDialog}>Open via context</Button>
-      <Button onClick={closeDialog}>Close via context</Button>
+      <Button onClick={() => openLabelManager()}>Open via context</Button>
+      <Button onClick={closeLabelManager}>Close via context</Button>
     </>
   )
 }

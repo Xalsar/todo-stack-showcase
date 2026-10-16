@@ -2,11 +2,16 @@
 
 import { createContext, useContext } from "react"
 
+type SelectedTodo = {
+  todoId: string
+}
+
 type LabelManagerContextValue = {
   open: boolean
   onOpenChange: (open: boolean) => void
-  openDialog: () => void
-  closeDialog: () => void
+  openLabelManager: (selectedTodo?: SelectedTodo) => void
+  closeLabelManager: () => void
+  selectedTodo: SelectedTodo | null
 }
 
 const LabelManagerContext = createContext<LabelManagerContextValue | null>(null)
@@ -24,4 +29,4 @@ function useLabelManager() {
 }
 
 export { LabelManagerContext, useLabelManager }
-export type { LabelManagerContextValue }
+export type { LabelManagerContextValue, SelectedTodo }

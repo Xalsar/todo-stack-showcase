@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/empty"
 import { ItemGroup } from "@/components/ui/item"
 import { Skeleton } from "@/components/ui/skeleton"
-import { useLabelManager } from "@/containers/labels/hooks/use-label-manager"
+import { useLabelManager } from "@/containers/labels/context/label-manager"
 import { useLabels } from "@/containers/labels/hooks/use-labels"
 import { TodoItem } from "@/containers/todos-list/components/todo-item"
 import { useCreateTodo } from "@/containers/todos-list/hooks/use-create-todo"
@@ -30,7 +30,7 @@ function TodosList() {
   const { data: labels } = useLabels()
 
   const { setMutating, isMutating } = useMutatingTodos()
-  const { openDialog } = useLabelManager()
+  const { openLabelManager } = useLabelManager()
 
   const create = useCreateTodo()
   const { onToggle } = useToggleTodo(setMutating)
@@ -88,7 +88,7 @@ function TodosList() {
               onToggle={onToggle}
               onDelete={onDelete}
               onLabel={onLabel}
-              onManageLabels={openDialog}
+              onManageLabels={() => openLabelManager({ todoId: todo.id })}
               onStartEdit={() => onStartEdit(todo.id)}
               onCancelEdit={onCancelEdit}
               onSubmitEdit={(title) => onUpdateTitle(todo.id, title)}

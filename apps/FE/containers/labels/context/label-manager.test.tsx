@@ -5,7 +5,7 @@ import {
   LabelManagerContext,
   useLabelManager,
   type LabelManagerContextValue,
-} from "./use-label-manager"
+} from "./label-manager"
 
 afterEach(() => {
   vi.restoreAllMocks()
@@ -24,8 +24,9 @@ describe("useLabelManager", () => {
     const value: LabelManagerContextValue = {
       open: true,
       onOpenChange: vi.fn(),
-      openDialog: vi.fn(),
-      closeDialog: vi.fn(),
+      openLabelManager: vi.fn(),
+      closeLabelManager: vi.fn(),
+      selectedTodo: null,
     }
 
     const { result } = renderHook(() => useLabelManager(), {

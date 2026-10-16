@@ -1,6 +1,7 @@
 "use client"
 
 import { Tag } from "lucide-react"
+import { useCallback, useMemo } from "react"
 
 import { AddForm } from "@/components/add-form"
 import {
@@ -18,29 +19,52 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useGetTodos } from "@/src/lib/api/generated/client"
 
 import { LabelList } from "./components/label-list"
+import { useApplyLabelToTodo } from "./hooks/use-apply-label-to-todo"
 import { useCreateLabel } from "./hooks/use-create-label"
 import { useDeleteLabel } from "./hooks/use-delete-label"
-import { useLabelManager } from "./hooks/use-label-manager"
+import { useLabelManager } from "./context/label-manager"
 import { useLabels } from "./hooks/use-labels"
 import { useRenameLabel } from "./hooks/use-rename-label"
 import { isNameConflict } from "./label-errors"
 
 function LabelManager() {
-  const { open, onOpenChange } = useLabelManager()
+  const { open, onOpenChange, selectedTodo } = useLabelManager()
   const { data: labels, error, isLoading } = useLabels()
+  const { data: todos } = useGetTodos()
   const { onCreate, isSubmitting, failed } = useCreateLabel()
   const { onRename, renamingId } = useRenameLabel()
   const { onDelete, deletingId } = useDeleteLabel()
+  const { applyLabel } = useApplyLabelToTodo()
+
+  const selectedLabelId = useMemo(() => {
+    if (!selectedTodo) return undefined
+    return (
+      todos?.find((todo) => todo.id === selectedTodo.todoId)?.labelId ?? null
+    )
+  }, [selectedTodo, todos])
+
+  const handleSelectLabel = useCallback(
+    (labelId: string | null) => {
+      if (!selectedTodo) return
+      applyLabel(selectedTodo.todoId, labelId)
+    },
+    [selectedTodo, applyLabel]
+  )
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Manage labels</DialogTitle>
+          <DialogTitle>
+            {selectedTodo ? "Change label" : "Manage labels"}
+          </DialogTitle>
           <DialogDescription>
-            Create, rename, and delete the labels you use on your todos.
+            {selectedTodo
+              ? "Select a label for this todo."
+              : "Create, rename, and delete the labels you use on your todos."}
           </DialogDescription>
         </DialogHeader>
 
@@ -88,6 +112,8 @@ function LabelManager() {
             deletingId={deletingId}
             onRename={onRename}
             onDelete={onDelete}
+            selectedId={selectedLabelId}
+            onSelect={handleSelectLabel}
           />
         )}
       </DialogContent>

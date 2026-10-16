@@ -1,7 +1,7 @@
 import { ThemeToggle } from "@/containers/theme-toggle"
 import { AuthGate } from "@/containers/auth/auth-gate"
 import { UserMenu } from "@/containers/auth/user-menu"
-import { LabelManagerTrigger } from "@/containers/labels/label-manager-trigger"
+import { LabelManagerTrigger } from "@/containers/labels/context/label-manager-trigger"
 import { TodosList } from "@/containers/todos-list/todos-list"
 
 export default function Page() {
