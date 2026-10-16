@@ -133,6 +133,7 @@ function TodoItem({
               <DropdownMenuGroup>
                 <DropdownMenuLabel>Labels</DropdownMenuLabel>
                 <DropdownMenuItem
+                  className="text-muted-foreground"
                   disabled={todo.labelId === null}
                   onClick={() => onLabel(todo.id, null)}
                 >

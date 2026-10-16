@@ -8,6 +8,7 @@ import {
   ItemTitle,
 } from "@/components/ui/item"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Separator } from "@/components/ui/separator"
 import type { Label } from "@/src/lib/api/generated/model"
 
 import { LabelRow } from "./label-row"
@@ -66,9 +67,10 @@ function LabelList({
           <RadioGroupItem value={NO_LABEL} aria-label="No label" />
         </ItemMedia>
         <ItemContent>
-          <ItemTitle>No label</ItemTitle>
+          <ItemTitle className="text-muted-foreground">No label</ItemTitle>
         </ItemContent>
       </Item>
+      <Separator />
       {labels.map((label) => (
         <LabelRow
           key={label.id}
