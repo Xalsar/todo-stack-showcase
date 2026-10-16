@@ -125,7 +125,11 @@ function TodoItem({
                 </Button>
               }
             />
-            <DropdownMenuContent align="end" side="bottom">
+            <DropdownMenuContent
+              align="end"
+              side="bottom"
+              className="w-auto min-w-48"
+            >
               <DropdownMenuGroup>
                 <DropdownMenuLabel>Labels</DropdownMenuLabel>
                 <DropdownMenuItem

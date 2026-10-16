@@ -69,10 +69,12 @@ describe("useCreateLabel", () => {
     postLabels.mockResolvedValue(created)
     const { result } = await renderCreate()
 
+    let createdResult: Label | null = null
     await act(async () => {
-      await result.current.create.onCreate("Errands")
+      createdResult = await result.current.create.onCreate("Errands")
     })
 
+    expect(createdResult).toEqual(created)
     expect(postLabels).toHaveBeenCalledWith({ name: "Errands" })
     expect(result.current.labels.data).toEqual([work, home, created])
     expect(result.current.create.failed).toBe(false)
@@ -93,10 +95,12 @@ describe("useCreateLabel", () => {
     postLabels.mockRejectedValue(new Error("boom"))
     const { result } = await renderCreate()
 
+    let createdResult: Label | null = null
     await act(async () => {
-      await result.current.create.onCreate("Errands")
+      createdResult = await result.current.create.onCreate("Errands")
     })
 
+    expect(createdResult).toBeNull()
     expect(result.current.labels.data).toEqual([work, home])
     expect(result.current.create.failed).toBe(true)
     expect(toastMock.error).toHaveBeenCalledWith(

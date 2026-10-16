@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react"
+import { render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
@@ -187,6 +187,60 @@ describe("LabelManager", () => {
     expect(client.patchTodosIdLabel).toHaveBeenCalledWith("todo-1", {
       labelId: home.id,
     })
+  })
+
+  it("assigns a newly created label to the target todo", async () => {
+    const created: Label = {
+      id: "3",
+      name: "Errands",
+      createdAt: "2024-01-03T00:00:00.000Z",
+      updatedAt: "2024-01-03T00:00:00.000Z",
+    }
+    client.postLabels.mockResolvedValue(created)
+    client.patchTodosIdLabel.mockResolvedValue({
+      id: "todo-1",
+      labelId: created.id,
+    })
+    todos.value = {
+      data: [{ id: "todo-1", labelId: null }],
+      mutate: client.todosMutate,
+    }
+    const user = userEvent.setup()
+
+    renderManager(contextValue({ selectedTodo: { todoId: "todo-1" } }))
+
+    await user.type(
+      await screen.findByPlaceholderText("Add a label…"),
+      "Errands"
+    )
+    await user.click(screen.getByRole("button", { name: "Add label" }))
+
+    await waitFor(() =>
+      expect(client.patchTodosIdLabel).toHaveBeenCalledWith("todo-1", {
+        labelId: created.id,
+      })
+    )
+  })
+
+  it("does not assign a new label when there is no target todo", async () => {
+    client.postLabels.mockResolvedValue({
+      id: "3",
+      name: "Errands",
+      createdAt: "2024-01-03T00:00:00.000Z",
+      updatedAt: "2024-01-03T00:00:00.000Z",
+    })
+    const user = userEvent.setup()
+
+    renderManager(contextValue({ selectedTodo: null }))
+
+    await user.type(
+      await screen.findByPlaceholderText("Add a label…"),
+      "Errands"
+    )
+    await user.click(screen.getByRole("button", { name: "Add label" }))
+
+    await waitFor(() => expect(client.postLabels).toHaveBeenCalled())
+    expect(client.patchTodosIdLabel).not.toHaveBeenCalled()
   })
 
   it("shows selection copy when opened with a target todo", async () => {

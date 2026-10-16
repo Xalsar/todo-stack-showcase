@@ -19,7 +19,7 @@ function useCreateLabel() {
       (label) => label.name.toLowerCase() === name.toLowerCase()
     )
 
-  const onCreate = async (name: string): Promise<boolean> => {
+  const onCreate = async (name: string): Promise<Label | null> => {
     setFailed(false)
 
     if (exists(name)) {
@@ -46,7 +46,7 @@ function useCreateLabel() {
           ),
         { revalidate: false }
       )
-      return true
+      return created
     } catch {
       setFailed(true)
       await mutate(
@@ -55,7 +55,7 @@ function useCreateLabel() {
         { revalidate: false }
       )
       toast.error("Failed to create label. Is the backend running?")
-      return false
+      return null
     } finally {
       setIsSubmitting(false)
     }

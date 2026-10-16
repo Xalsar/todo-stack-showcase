@@ -54,6 +54,17 @@ function LabelManager() {
     [selectedTodo, applyLabel]
   )
 
+  const handleCreate = useCallback(
+    async (name: string) => {
+      const created = await onCreate(name)
+      if (created && selectedTodo) {
+        await applyLabel(selectedTodo.todoId, created.id)
+      }
+      return created !== null
+    },
+    [onCreate, applyLabel, selectedTodo]
+  )
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
@@ -74,7 +85,7 @@ function LabelManager() {
           submitLabel="Add label"
           requiredMessage="Name is required"
           failureMessage="Failed to save label. Is the backend running?"
-          onSubmit={onCreate}
+          onSubmit={handleCreate}
           isSubmitting={isSubmitting}
           failed={failed}
           mapError={(error) =>
