@@ -12,7 +12,7 @@ function useDeleteLabel() {
   const { mutate: mutateTodos } = useGetTodos()
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
-  const onDelete = async (id: string): Promise<void> => {
+  const onDelete = async (id: string): Promise<boolean> => {
     const removed = labels?.find((label) => label.id === id)
     setDeletingId(id)
 
@@ -28,6 +28,7 @@ function useDeleteLabel() {
         { revalidate: false }
       )
       await deleteLabelsId(id)
+      return true
     } catch {
       if (removed) {
         await mutate((current) => [removed, ...(current ?? [])], {
@@ -35,6 +36,7 @@ function useDeleteLabel() {
         })
       }
       toast.error("Failed to delete label. Is the backend running?")
+      return false
     } finally {
       setDeletingId(null)
     }

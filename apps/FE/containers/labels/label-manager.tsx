@@ -136,7 +136,12 @@ function LabelManager() {
         <DeleteLabelDialog
           labelName={deletingLabel.name}
           isDeleting={deletingId === deletingLabel.id}
-          onConfirm={() => onDelete(deletingLabel.id)}
+          onConfirm={async () => {
+            const success = await onDelete(deletingLabel.id)
+            if (success) {
+              setDeletingLabel(null)
+            }
+          }}
           open
           onOpenChange={(isOpen) => {
             if (!isOpen) setDeletingLabel(null)

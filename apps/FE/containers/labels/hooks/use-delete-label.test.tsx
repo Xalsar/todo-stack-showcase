@@ -63,10 +63,12 @@ describe("useDeleteLabel", () => {
     deleteLabelsId.mockResolvedValue(undefined)
     const { result } = await renderDelete()
 
+    let deleted: boolean
     await act(async () => {
-      await result.current.remove.onDelete("1")
+      deleted = await result.current.remove.onDelete("1")
     })
 
+    expect(deleted!).toBe(true)
     expect(deleteLabelsId).toHaveBeenCalledWith("1")
     expect(result.current.labels.data).toEqual([home])
 
@@ -88,10 +90,12 @@ describe("useDeleteLabel", () => {
     deleteLabelsId.mockRejectedValue(new Error("boom"))
     const { result } = await renderDelete()
 
+    let deleted: boolean
     await act(async () => {
-      await result.current.remove.onDelete("1")
+      deleted = await result.current.remove.onDelete("1")
     })
 
+    expect(deleted!).toBe(false)
     expect(result.current.labels.data).toEqual([work, home])
     expect(toastMock.error).toHaveBeenCalledWith(
       "Failed to delete label. Is the backend running?"
