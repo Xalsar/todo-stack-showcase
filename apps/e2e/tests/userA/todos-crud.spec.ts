@@ -1,24 +1,6 @@
-import { randomUUID } from "node:crypto"
-
 import { expect, test } from "@playwright/test"
-import type { Page } from "@playwright/test"
 
-const uniqueTitle = (label: string) => `${label} ${randomUUID()}`
-
-function todoRow(page: Page, title: string) {
-  return page
-    .getByRole("listitem")
-    .filter({ has: page.getByRole("button", { name: title }) })
-}
-
-async function createTodo(page: Page, title: string) {
-  await page.getByPlaceholder("Add a todo…").fill(title)
-  await page.getByRole("button", { name: "Add todo" }).click()
-
-  const row = todoRow(page, title)
-  await expect(row).toBeVisible()
-  return row
-}
+import { createTodo, todoRow, uniqueTitle } from "../support/todo-helpers"
 
 test.beforeEach(async ({ page }) => {
   await page.goto("/")
