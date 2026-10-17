@@ -23,6 +23,12 @@ app.use(
 
 app.all("/api/auth/{*any}", toNodeHandler(auth))
 
+app.get("/health", (_req, res) => {
+  res.json({ status: "ok", timestamp: new Date().toISOString() })
+})
+
 app.use(express.json())
 app.use("/todos", requireAuth, todosRouter)
 app.use("/labels", requireAuth, labelsRouter)
+
+export default app

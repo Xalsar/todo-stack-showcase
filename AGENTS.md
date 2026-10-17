@@ -76,6 +76,9 @@ fetching. An orval-generated SWR client from the committed `apps/BE/openapi.json
   ignored — don't edit them by hand.
 - `src/scripts/generate-openapi.ts` imports route modules for their registration side effects — new route
   files must be imported there or they won't appear in the spec.
+- **Deployment to Vercel**: Before deploying, read `.agents/skills/vercel-deployment-gotchas.md`. Key issues:
+  Express apps need `export default app`, monorepo tsconfig must exclude test files, use a single env var
+  for backend URL across API and auth clients, and configure cross-subdomain cookies in better-auth.
 
 ## Conventions
 

@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch --env-file=.env src/server.ts",
-    "start": "tsx --env-file=.env src/server.ts",
-    "build": "tsc -p tsconfig.json",
+    "start": "node dist/server.js",
+    "build": "prisma generate && tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.test.json",
     "db:up": "podman-compose -f compose.yaml up -d",
     "db:down": "podman-compose -f compose.yaml down",
