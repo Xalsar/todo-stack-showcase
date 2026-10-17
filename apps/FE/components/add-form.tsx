@@ -73,7 +73,7 @@ function AddForm({
       noValidate
     >
       <FieldGroup>
-        <Field data-invalid={invalid || undefined}>
+        <Field data-invalid={invalid || undefined} className="mt-2">
           <FieldLabel htmlFor={fieldId} className="sr-only">
             {label}
           </FieldLabel>

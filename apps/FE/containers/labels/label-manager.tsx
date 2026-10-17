@@ -44,6 +44,12 @@ function LabelManager() {
     )
   }, [selectedTodo, todos])
 
+  const deletingAffectedCount = useMemo(() => {
+    if (!deletingLabel) return 0
+    return (todos ?? []).filter((todo) => todo.labelId === deletingLabel.id)
+      .length
+  }, [todos, deletingLabel])
+
   const handleSelectLabel = useCallback(
     (labelId: string | null) => {
       if (!selectedTodo) return
@@ -135,6 +141,7 @@ function LabelManager() {
       {deletingLabel && (
         <DeleteLabelDialog
           labelName={deletingLabel.name}
+          affectedTodos={deletingAffectedCount}
           isDeleting={deletingId === deletingLabel.id}
           onConfirm={async () => {
             const success = await onDelete(deletingLabel.id)

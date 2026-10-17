@@ -16,8 +16,11 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Spinner } from "@/components/ui/spinner"
 
+import { AffectedTodosNotice } from "./affected-todos-notice"
+
 type DeleteLabelDialogProps = {
   labelName: string
+  affectedTodos: number
   isDeleting?: boolean
   onConfirm: () => void
   open?: boolean
@@ -27,6 +30,7 @@ type DeleteLabelDialogProps = {
 
 function DeleteLabelDialog({
   labelName,
+  affectedTodos,
   isDeleting = false,
   onConfirm,
   open,
@@ -45,10 +49,10 @@ function DeleteLabelDialog({
           </AlertDialogMedia>
           <AlertDialogTitle>Delete &ldquo;{labelName}&rdquo;?</AlertDialogTitle>
           <AlertDialogDescription>
-            This removes the label from every todo that uses it and can&rsquo;t
-            be undone.
+            This permanently deletes the label and can&rsquo;t be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
+        <AffectedTodosNotice count={affectedTodos} />
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
           <AlertDialogAction

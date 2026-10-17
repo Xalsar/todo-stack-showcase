@@ -26,7 +26,7 @@ const client = vi.hoisted(() => ({
 
 const todos = vi.hoisted(() => ({
   value: {
-    data: [] as Array<{ id: string; labelId: string | null }>,
+    data: [] as Array<{ id: string; labelId: string | null }> | undefined,
     mutate: client.todosMutate,
   },
 }))
@@ -256,7 +256,36 @@ describe("LabelManager", () => {
     await user.click(await screen.findByRole("button", { name: "Delete Work" }))
 
     expect(
-      await screen.findByText(/removes the label from every todo/i)
+      await screen.findByText(/permanently deletes the label/i)
+    ).toBeInTheDocument()
+  })
+
+  it("shows how many todos use the label in the delete dialog", async () => {
+    todos.value = {
+      data: [
+        { id: "todo-1", labelId: work.id },
+        { id: "todo-2", labelId: work.id },
+        { id: "todo-3", labelId: home.id },
+      ],
+      mutate: client.todosMutate,
+    }
+    const user = userEvent.setup()
+    renderManager(null)
+
+    await user.click(await screen.findByRole("button", { name: "Delete Work" }))
+
+    expect(await screen.findByText(/applied to 2 todos/i)).toBeInTheDocument()
+  })
+
+  it("reports no affected todos when the todo list is unavailable", async () => {
+    todos.value = { data: undefined, mutate: client.todosMutate }
+    const user = userEvent.setup()
+    renderManager(null)
+
+    await user.click(await screen.findByRole("button", { name: "Delete Work" }))
+
+    expect(
+      await screen.findByText(/no todos use this label/i)
     ).toBeInTheDocument()
   })
 
@@ -280,7 +309,7 @@ describe("LabelManager", () => {
     await user.click(await screen.findByRole("button", { name: "Cancel" }))
 
     expect(
-      screen.queryByText(/removes the label from every todo/i)
+      screen.queryByText(/permanently deletes the label/i)
     ).not.toBeInTheDocument()
     expect(client.deleteLabelsId).not.toHaveBeenCalled()
   })
