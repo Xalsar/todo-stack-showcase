@@ -29,7 +29,7 @@ vi.mock("@/src/lib/api/generated/client", () => ({
   deleteTodosId: clientMock.deleteTodo,
 }))
 
-vi.mock("@/containers/labels/context/label-manager", () => ({
+vi.mock("@/containers/labels/store/label-manager", () => ({
   useLabelManager: () => ({
     open: false,
     onOpenChange: vi.fn(),

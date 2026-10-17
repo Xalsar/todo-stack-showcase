@@ -3,8 +3,8 @@ name: fe-structure-preferences
 description: Frontend structure preferences for this repo. Use when creating,
   refactoring, or reviewing React components, hooks, or state management. Trigger
   on "component structure", "extract a hook", "presentational", "stateless",
-  "stateful container", "refactor this component", "context provider",
-  "context folder", "trigger button", or "organize context".
+  "stateful container", "refactor this component", "zustand store", "store folder",
+  "trigger button", "modal state", or "organize store".
 ---
 
 # Frontend structure preferences
@@ -33,29 +33,37 @@ State used by several hooks (e.g. a set of mutating ids) lives in its own hook
 (e.g. `use-mutating-todos.ts` exposing `setMutating`/`isMutating`) rather than
 being declared inline in the container.
 
-## 5. Group context providers and triggers into a `context/` subfolder
+## 5. Use Zustand stores for modal/panel state instead of React Context
 
-When a feature exposes a React context provider and a trigger button (the UI
-that opens the thing the provider manages), keep them together in a `context/`
-subfolder within the feature container. The provider and trigger are a pair —
-one is useless without the other — and external consumers (app layout, page
-routes) import both from the same path.
+For modals, panels, and similar UI state that needs to be shared across components,
+prefer Zustand stores over React Context. Place the store and its tightly-coupled
+trigger component in a `store/` subfolder within the feature container.
 
-The dialog, panel, or other UI that the provider renders stays at the feature's
-top level alongside `components/` and `hooks/`.
+Zustand stores are state containers (not just hooks), and triggers that only exist
+to call store actions belong with the store. This reduces boilerplate (no provider
+wrapper, no context definition file) and simplifies testing (direct state manipulation
+instead of provider wrapping).
 
 Example:
 
     containers/labels/
     ├── components/
-    ├── context/
-    │   ├── label-manager-provider.tsx
-    │   ├── label-manager-provider.test.tsx
-    │   └── label-manager-trigger.tsx
+    ├── store/
+    │   ├── label-manager.ts           # Zustand store
+    │   ├── label-manager-trigger.tsx  # trigger component
+    │   ├── label-manager.test.ts
+    │   └── label-manager-trigger.test.tsx
     ├── hooks/
-    ├── label-manager.tsx        # dialog rendered by the provider
+    ├── label-manager.tsx              # dialog rendered in the page
     └── label-errors.ts
 
+The dialog/panel component stays at the feature's top level and is rendered in the
+page where it's actually used (not in the layout), keeping it co-located with its
+usage context.
+
+External consumers import the store hook from `@/containers/<feature>/store/<name>`
+and the trigger from the same path.
+
 Keep the split simple: only create subfolders when there is a genuinely separate
-concern (context, a group of related components, etc.). The flat `components/` +
+concern (store, a group of related components, etc.). The flat `components/` +
 `hooks/` layout is the default — don't nest for the sake of nesting.

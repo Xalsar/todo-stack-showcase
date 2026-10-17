@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { useLabelManager } from "./label-manager"
 
 function LabelManagerTrigger() {
-  const { openLabelManager } = useLabelManager()
+  const openLabelManager = useLabelManager((state) => state.openLabelManager)
 
   return (
     <Button variant="ghost" onClick={() => openLabelManager()}>

@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/empty"
 import { ItemGroup } from "@/components/ui/item"
 import { Skeleton } from "@/components/ui/skeleton"
-import { useLabelManager } from "@/containers/labels/context/label-manager"
+import { useLabelManager } from "@/containers/labels/store/label-manager"
 import { useLabels } from "@/containers/labels/hooks/use-labels"
 import { TodoItem } from "@/containers/todos-list/components/todo-item"
 import { useCreateTodo } from "@/containers/todos-list/hooks/use-create-todo"

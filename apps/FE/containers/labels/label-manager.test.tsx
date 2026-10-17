@@ -40,11 +40,8 @@ vi.mock("@/src/lib/api/generated/client", () => ({
   patchTodosIdLabel: client.patchTodosIdLabel,
 }))
 
-import {
-  LabelManagerContext,
-  type LabelManagerContextValue,
-} from "./context/label-manager"
 import { LabelManager } from "./label-manager"
+import { useLabelManager, type SelectedTodo } from "./store/label-manager"
 
 const work: Label = {
   id: "1",
@@ -59,30 +56,14 @@ const home: Label = {
   updatedAt: "2024-01-01T00:00:00.000Z",
 }
 
-function contextValue(
-  overrides: Partial<LabelManagerContextValue> = {}
-): LabelManagerContextValue {
-  return {
-    open: true,
-    onOpenChange: vi.fn(),
-    openLabelManager: vi.fn(),
-    closeLabelManager: vi.fn(),
-    selectedTodo: null,
-    ...overrides,
-  }
-}
-
-function renderManager(value = contextValue()) {
-  render(
-    <LabelManagerContext.Provider value={value}>
-      <LabelManager />
-    </LabelManagerContext.Provider>
-  )
-  return value
+function renderManager(selectedTodo: SelectedTodo | null = null) {
+  useLabelManager.setState({ open: true, selectedTodo })
+  render(<LabelManager />)
 }
 
 beforeEach(() => {
   vi.clearAllMocks()
+  useLabelManager.setState({ open: false, selectedTodo: null })
   labels.value = {
     data: [work, home],
     error: undefined,
@@ -153,7 +134,7 @@ describe("LabelManager", () => {
       mutate: client.todosMutate,
     }
 
-    renderManager(contextValue({ selectedTodo: { todoId: "todo-1" } }))
+    renderManager({ todoId: "todo-1" })
 
     expect(await screen.findByRole("radio", { name: "Work" })).toBeChecked()
   })
@@ -164,7 +145,7 @@ describe("LabelManager", () => {
       mutate: client.todosMutate,
     }
 
-    renderManager(contextValue({ selectedTodo: { todoId: "todo-1" } }))
+    renderManager({ todoId: "todo-1" })
 
     expect(await screen.findByRole("radio", { name: "No label" })).toBeChecked()
   })
@@ -180,7 +161,7 @@ describe("LabelManager", () => {
     }
     const user = userEvent.setup()
 
-    renderManager(contextValue({ selectedTodo: { todoId: "todo-1" } }))
+    renderManager({ todoId: "todo-1" })
 
     await user.click(await screen.findByRole("radio", { name: "Home" }))
 
@@ -207,7 +188,7 @@ describe("LabelManager", () => {
     }
     const user = userEvent.setup()
 
-    renderManager(contextValue({ selectedTodo: { todoId: "todo-1" } }))
+    renderManager({ todoId: "todo-1" })
 
     await user.type(
       await screen.findByPlaceholderText("Add a label…"),
@@ -231,7 +212,7 @@ describe("LabelManager", () => {
     })
     const user = userEvent.setup()
 
-    renderManager(contextValue({ selectedTodo: null }))
+    renderManager(null)
 
     await user.type(
       await screen.findByPlaceholderText("Add a label…"),
@@ -249,7 +230,7 @@ describe("LabelManager", () => {
       mutate: client.todosMutate,
     }
 
-    renderManager(contextValue({ selectedTodo: { todoId: "todo-1" } }))
+    renderManager({ todoId: "todo-1" })
 
     expect(await screen.findByText("Change label")).toBeInTheDocument()
     expect(
@@ -258,7 +239,7 @@ describe("LabelManager", () => {
   })
 
   it("shows management copy when opened without a target todo", async () => {
-    renderManager(contextValue({ selectedTodo: null }))
+    renderManager(null)
 
     expect(await screen.findByText("Manage labels")).toBeInTheDocument()
     expect(

@@ -2,7 +2,6 @@ import { Geist, Geist_Mono, Inter } from "next/font/google"
 
 import "./globals.css"
 import { ThemeProvider } from "@/providers/theme-provider"
-import { LabelManagerProvider } from "@/containers/labels/context/label-manager-provider"
 import { Toaster } from "@/components/ui/sonner"
 import { cn } from "@/lib/utils"
 
@@ -31,7 +30,7 @@ export default function RootLayout({
     >
       <body>
         <ThemeProvider>
-          <LabelManagerProvider>{children}</LabelManagerProvider>
+          {children}
           <Toaster />
         </ThemeProvider>
       </body>
