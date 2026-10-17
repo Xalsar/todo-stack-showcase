@@ -1,30 +1,24 @@
 "use client"
 
-import { Tag } from "lucide-react"
 import { useCallback, useMemo } from "react"
 
 import { AddForm } from "@/components/add-form"
+import { Button } from "@/components/ui/button"
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "@/components/ui/empty"
-import { Skeleton } from "@/components/ui/skeleton"
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer"
 import { useGetTodos } from "@/src/lib/api/generated/client"
 
-import { LabelList } from "./components/label-list"
+import { LabelsContent } from "./components/labels-content"
 import { useApplyLabelToTodo } from "./hooks/use-apply-label-to-todo"
 import { useCreateLabel } from "./hooks/use-create-label"
 import { useDeleteLabel } from "./hooks/use-delete-label"
+import { useIsDesktop } from "./hooks/use-is-desktop"
 import { useLabelManager } from "./store/label-manager"
 import { useLabels } from "./hooks/use-labels"
 import { useRenameLabel } from "./hooks/use-rename-label"
@@ -32,6 +26,7 @@ import { isNameConflict } from "./label-errors"
 
 function LabelManager() {
   const { open, onOpenChange, selectedTodo } = useLabelManager()
+  const isDesktop = useIsDesktop()
   const { data: labels, error, isLoading } = useLabels()
   const { data: todos } = useGetTodos()
   const { onCreate, isSubmitting, failed } = useCreateLabel()
@@ -66,58 +61,43 @@ function LabelManager() {
   )
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>
+    <Drawer
+      open={open}
+      onOpenChange={onOpenChange}
+      swipeDirection={isDesktop ? "right" : "down"}
+    >
+      <DrawerContent className="my-2">
+        <DrawerHeader className="text-left">
+          <DrawerTitle>
             {selectedTodo ? "Change label" : "Manage labels"}
-          </DialogTitle>
-          <DialogDescription>
+          </DrawerTitle>
+          <DrawerDescription>
             {selectedTodo
               ? "Select a label for this todo."
               : "Create, rename, and delete the labels you use on your todos."}
-          </DialogDescription>
-        </DialogHeader>
+          </DrawerDescription>
+        </DrawerHeader>
 
-        <AddForm
-          label="New label"
-          placeholder="Add a label…"
-          submitLabel="Add label"
-          requiredMessage="Name is required"
-          failureMessage="Failed to save label. Is the backend running?"
-          onSubmit={handleCreate}
-          isSubmitting={isSubmitting}
-          failed={failed}
-          mapError={(error) =>
-            isNameConflict(error)
-              ? "A label with this name already exists"
-              : "Failed to save label"
-          }
-        />
+        <div className="mt-2 flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-4 pb-4">
+          <AddForm
+            label="New label"
+            placeholder="Add a label…"
+            submitLabel="Add label"
+            requiredMessage="Name is required"
+            failureMessage="Failed to save label. Is the backend running?"
+            onSubmit={handleCreate}
+            isSubmitting={isSubmitting}
+            failed={failed}
+            mapError={(error) =>
+              isNameConflict(error)
+                ? "A label with this name already exists"
+                : "Failed to save label"
+            }
+          />
 
-        {isLoading ? (
-          <div aria-hidden className="flex flex-col gap-2">
-            <Skeleton className="h-11 w-full rounded-lg" />
-            <Skeleton className="h-11 w-full rounded-lg" />
-          </div>
-        ) : error ? (
-          <p className="text-sm text-destructive" role="alert">
-            Failed to load labels. Is the backend running?
-          </p>
-        ) : !labels?.length ? (
-          <Empty className="border border-dashed">
-            <EmptyHeader>
-              <EmptyMedia variant="icon">
-                <Tag />
-              </EmptyMedia>
-              <EmptyTitle>No labels yet</EmptyTitle>
-              <EmptyDescription>
-                Add your first label with the field above.
-              </EmptyDescription>
-            </EmptyHeader>
-          </Empty>
-        ) : (
-          <LabelList
+          <LabelsContent
+            isLoading={isLoading}
+            isError={Boolean(error)}
             labels={labels}
             renamingId={renamingId}
             deletingId={deletingId}
@@ -126,9 +106,19 @@ function LabelManager() {
             selectedId={selectedLabelId}
             onSelect={handleSelectLabel}
           />
-        )}
-      </DialogContent>
-    </Dialog>
+        </div>
+
+        <div className="border-t p-4">
+          <DrawerClose
+            render={
+              <Button variant="outline" className="w-full">
+                Close
+              </Button>
+            }
+          />
+        </div>
+      </DrawerContent>
+    </Drawer>
   )
 }
 

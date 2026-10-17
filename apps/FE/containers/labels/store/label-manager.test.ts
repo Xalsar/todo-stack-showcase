@@ -40,6 +40,25 @@ describe("useLabelManager", () => {
     expect(useLabelManager.getState().open).toBe(false)
   })
 
+  it("preserves the selected todo when closing", () => {
+    const { openLabelManager, closeLabelManager } = useLabelManager.getState()
+    openLabelManager({ todoId: "t1" })
+    expect(useLabelManager.getState().selectedTodo).toEqual({ todoId: "t1" })
+
+    closeLabelManager()
+
+    expect(useLabelManager.getState().selectedTodo).toEqual({ todoId: "t1" })
+  })
+
+  it("preserves the selected todo when onOpenChange is called with false", () => {
+    const { openLabelManager, onOpenChange } = useLabelManager.getState()
+    openLabelManager({ todoId: "t1" })
+
+    onOpenChange(false)
+
+    expect(useLabelManager.getState().selectedTodo).toEqual({ todoId: "t1" })
+  })
+
   it("toggles the open state through onOpenChange", () => {
     useLabelManager.getState().onOpenChange(true)
     expect(useLabelManager.getState().open).toBe(true)
