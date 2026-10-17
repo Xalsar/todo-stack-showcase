@@ -1,12 +1,22 @@
 import { render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
-import { beforeEach, describe, expect, it } from "vitest"
+import { beforeEach, describe, expect, it, vi } from "vitest"
+
+const authMock = vi.hoisted(() => ({ useSession: vi.fn() }))
+
+vi.mock("@/src/lib/auth-client", () => ({
+  authClient: { useSession: authMock.useSession },
+}))
 
 import { useLabelManager } from "./label-manager"
 import { LabelManagerTrigger } from "./label-manager-trigger"
 
 beforeEach(() => {
   useLabelManager.setState({ open: false, selectedTodo: null })
+  authMock.useSession.mockReturnValue({
+    data: { session: { id: "session-1" }, user: { id: "user-1" } },
+    isPending: false,
+  })
 })
 
 describe("LabelManagerTrigger", () => {
@@ -20,5 +30,13 @@ describe("LabelManagerTrigger", () => {
 
     expect(open).toBe(true)
     expect(selectedTodo).toBeNull()
+  })
+
+  it("renders nothing when the user is not signed in", () => {
+    authMock.useSession.mockReturnValue({ data: null, isPending: false })
+
+    const { container } = render(<LabelManagerTrigger />)
+
+    expect(container).toBeEmptyDOMElement()
   })
 })
