@@ -20,27 +20,33 @@ type DeleteLabelDialogProps = {
   labelName: string
   isDeleting?: boolean
   onConfirm: () => void
-  children: React.ReactElement
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
+  children?: React.ReactElement
 }
 
 function DeleteLabelDialog({
   labelName,
   isDeleting = false,
   onConfirm,
+  open,
+  onOpenChange,
   children,
 }: DeleteLabelDialogProps) {
+  const isControlled = open !== undefined
+
   return (
-    <AlertDialog>
-      <AlertDialogTrigger render={children} />
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
+      {!isControlled && children && <AlertDialogTrigger render={children} />}
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogMedia>
             <TriangleAlert />
           </AlertDialogMedia>
-          <AlertDialogTitle>Delete “{labelName}”?</AlertDialogTitle>
+          <AlertDialogTitle>Delete &ldquo;{labelName}&rdquo;?</AlertDialogTitle>
           <AlertDialogDescription>
-            This removes the label from every todo that uses it and can’t be
-            undone.
+            This removes the label from every todo that uses it and can&rsquo;t
+            be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

@@ -248,4 +248,40 @@ describe("LabelManager", () => {
       )
     ).toBeInTheDocument()
   })
+
+  it("opens the delete dialog when the delete button is clicked", async () => {
+    const user = userEvent.setup()
+    renderManager(null)
+
+    await user.click(await screen.findByRole("button", { name: "Delete Work" }))
+
+    expect(
+      await screen.findByText(/removes the label from every todo/i)
+    ).toBeInTheDocument()
+  })
+
+  it("deletes the label when the dialog is confirmed", async () => {
+    const user = userEvent.setup()
+    renderManager(null)
+
+    await user.click(await screen.findByRole("button", { name: "Delete Work" }))
+    await user.click(
+      await screen.findByRole("button", { name: "Delete label" })
+    )
+
+    await waitFor(() => expect(client.deleteLabelsId).toHaveBeenCalledWith("1"))
+  })
+
+  it("closes the delete dialog when cancel is clicked", async () => {
+    const user = userEvent.setup()
+    renderManager(null)
+
+    await user.click(await screen.findByRole("button", { name: "Delete Work" }))
+    await user.click(await screen.findByRole("button", { name: "Cancel" }))
+
+    expect(
+      screen.queryByText(/removes the label from every todo/i)
+    ).not.toBeInTheDocument()
+    expect(client.deleteLabelsId).not.toHaveBeenCalled()
+  })
 })

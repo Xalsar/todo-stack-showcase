@@ -20,7 +20,7 @@ type LabelListProps = {
   renamingId: string | null
   deletingId: string | null
   onRename: (id: string, name: string) => Promise<boolean>
-  onDelete: (id: string) => Promise<void>
+  onDelete: (id: string) => void
   selectedId?: string | null
   onSelect?: (value: string | null) => void
 }

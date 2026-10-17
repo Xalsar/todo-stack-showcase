@@ -18,6 +18,23 @@ function renderDialog(
   return { onConfirm, user: userEvent.setup() }
 }
 
+function renderControlledDialog(
+  props: Partial<React.ComponentProps<typeof DeleteLabelDialog>> = {}
+) {
+  const onConfirm = vi.fn()
+  const onOpenChange = vi.fn()
+  render(
+    <DeleteLabelDialog
+      labelName="Work"
+      onConfirm={onConfirm}
+      open
+      onOpenChange={onOpenChange}
+      {...props}
+    />
+  )
+  return { onConfirm, onOpenChange, user: userEvent.setup() }
+}
+
 describe("DeleteLabelDialog", () => {
   it("warns about unassigning and confirms deletion", async () => {
     const { onConfirm, user } = renderDialog()
@@ -50,5 +67,31 @@ describe("DeleteLabelDialog", () => {
       await screen.findByRole("button", { name: "Delete label" })
     ).toBeDisabled()
     expect(screen.getByRole("button", { name: "Cancel" })).toBeDisabled()
+  })
+
+  it("opens immediately when controlled with open prop", async () => {
+    renderControlledDialog()
+
+    expect(
+      await screen.findByText(/removes the label from every todo/i)
+    ).toBeInTheDocument()
+  })
+
+  it("calls onOpenChange when cancel is clicked in controlled mode", async () => {
+    const { onOpenChange, user } = renderControlledDialog()
+
+    await user.click(await screen.findByRole("button", { name: "Cancel" }))
+
+    expect(onOpenChange).toHaveBeenCalledWith(false, expect.anything())
+  })
+
+  it("confirms deletion in controlled mode", async () => {
+    const { onConfirm, user } = renderControlledDialog()
+
+    await user.click(
+      await screen.findByRole("button", { name: "Delete label" })
+    )
+
+    expect(onConfirm).toHaveBeenCalledTimes(1)
   })
 })

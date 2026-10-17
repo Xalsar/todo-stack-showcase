@@ -17,14 +17,13 @@ import type { Label } from "@/src/lib/api/generated/model"
 
 import { cn } from "@/lib/utils"
 import { isNameConflict } from "../label-errors"
-import { DeleteLabelDialog } from "./delete-label-dialog"
 
 type LabelRowProps = {
   label: Label
   isRenaming: boolean
   isDeleting: boolean
   onRename: (id: string, name: string) => Promise<boolean>
-  onDelete: (id: string) => Promise<void>
+  onDelete: (id: string) => void
   value?: string
 }
 
@@ -104,21 +103,16 @@ function LabelRow({
         >
           <Pencil />
         </Button>
-        <DeleteLabelDialog
-          labelName={label.name}
-          isDeleting={isDeleting}
-          onConfirm={() => onDelete(label.id)}
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          disabled={isDeleting}
+          onClick={() => onDelete(label.id)}
+          className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive disabled:opacity-100 dark:hover:bg-destructive/20"
+          aria-label={`Delete ${label.name}`}
         >
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            disabled={isDeleting}
-            className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive disabled:opacity-100 dark:hover:bg-destructive/20"
-            aria-label={`Delete ${label.name}`}
-          >
-            <Trash2 />
-          </Button>
-        </DeleteLabelDialog>
+          <Trash2 />
+        </Button>
       </ItemActions>
     </Item>
   )

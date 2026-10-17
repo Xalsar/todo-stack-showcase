@@ -128,15 +128,10 @@ describe("LabelRow", () => {
     expect(screen.getByLabelText("Edit label name")).toBeInTheDocument()
   })
 
-  it("confirms deletion through the alert dialog", async () => {
+  it("calls onDelete when the delete button is clicked", async () => {
     const { onDelete, user } = renderRow()
 
     await user.click(screen.getByRole("button", { name: "Delete Work" }))
-    expect(
-      await screen.findByText(/removes the label from every todo/i)
-    ).toBeInTheDocument()
-
-    await user.click(screen.getByRole("button", { name: "Delete label" }))
     expect(onDelete).toHaveBeenCalledWith("1")
   })
 
