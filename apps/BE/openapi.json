@@ -127,6 +127,18 @@
         },
         "required": ["name"]
       },
+      "CreatedTodoLabel": {
+        "type": "object",
+        "properties": {
+          "todo": {
+            "$ref": "#/components/schemas/Todo"
+          },
+          "label": {
+            "$ref": "#/components/schemas/Label"
+          }
+        },
+        "required": ["todo", "label"]
+      },
       "UpdateLabel": {
         "type": "object",
         "properties": {
@@ -426,6 +438,48 @@
           },
           "404": {
             "description": "Todo not found"
+          }
+        }
+      },
+      "post": {
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "description": "Label to create and apply to the todo",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateLabel"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Updated todo and the created label",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatedTodoLabel"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Todo not found"
+          },
+          "409": {
+            "description": "A label with this name already exists"
           }
         }
       }

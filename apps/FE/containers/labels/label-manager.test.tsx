@@ -22,6 +22,7 @@ const listeners = vi.hoisted(() => new Set<() => void>())
 const client = vi.hoisted(() => ({
   mutate: vi.fn(),
   postLabels: vi.fn(),
+  postTodosIdLabel: vi.fn(),
   patchLabelsId: vi.fn(),
   deleteLabelsId: vi.fn(),
   todosMutate: vi.fn(),
@@ -39,6 +40,7 @@ vi.mock("@/src/lib/api/generated/client", () => ({
   useGetLabels: () => useSyncExternalStore(subscribe, getLabelsSnapshot),
   useGetTodos: () => useSyncExternalStore(subscribe, getTodosSnapshot),
   postLabels: client.postLabels,
+  postTodosIdLabel: client.postTodosIdLabel,
   patchLabelsId: client.patchLabelsId,
   deleteLabelsId: client.deleteLabelsId,
   patchTodosIdLabel: client.patchTodosIdLabel,
@@ -212,17 +214,16 @@ describe("LabelManager", () => {
     })
   })
 
-  it("assigns a newly created label to the target todo", async () => {
+  it("creates and assigns a new label to the target todo in one request", async () => {
     const created: Label = {
       id: "3",
       name: "Errands",
       createdAt: "2024-01-03T00:00:00.000Z",
       updatedAt: "2024-01-03T00:00:00.000Z",
     }
-    client.postLabels.mockResolvedValue(created)
-    client.patchTodosIdLabel.mockResolvedValue({
-      id: "todo-1",
-      labelId: created.id,
+    client.postTodosIdLabel.mockResolvedValue({
+      todo: { id: "todo-1", labelId: created.id },
+      label: created,
     })
     todos.value = {
       data: [{ id: "todo-1", labelId: null }],
@@ -238,36 +239,33 @@ describe("LabelManager", () => {
     )
     await user.click(screen.getByRole("button", { name: "Add label" }))
 
-    await waitFor(() =>
-      expect(client.patchTodosIdLabel).toHaveBeenCalledWith("todo-1", {
-        labelId: created.id,
-      })
-    )
-
-    // The row is revealed once, already selected.
     expect(await screen.findByRole("radio", { name: "Errands" })).toBeChecked()
+    expect(client.postTodosIdLabel).toHaveBeenCalledWith("todo-1", {
+      name: "Errands",
+    })
+    expect(client.postLabels).not.toHaveBeenCalled()
+    expect(client.patchTodosIdLabel).not.toHaveBeenCalled()
   })
 
-  it("reveals a newly created label only once it is already selected", async () => {
+  it("keeps the current selection until the new label is created", async () => {
     const created: Label = {
       id: "3",
       name: "Errands",
       createdAt: "2024-01-03T00:00:00.000Z",
       updatedAt: "2024-01-03T00:00:00.000Z",
     }
-    client.postLabels.mockResolvedValue(created)
-    let resolvePatch: (value: {
-      id: string
-      labelId: string | null
+    let resolvePost: (value: {
+      todo: { id: string; labelId: string | null }
+      label: Label
     }) => void = () => {}
-    client.patchTodosIdLabel.mockImplementation(
+    client.postTodosIdLabel.mockImplementation(
       () =>
         new Promise((resolve) => {
-          resolvePatch = resolve
+          resolvePost = resolve
         })
     )
     todos.value = {
-      data: [{ id: "todo-1", labelId: null }],
+      data: [{ id: "todo-1", labelId: work.id }],
       mutate: client.todosMutate,
     }
     const user = userEvent.setup()
@@ -280,15 +278,28 @@ describe("LabelManager", () => {
     )
     await user.click(screen.getByRole("button", { name: "Add label" }))
 
-    // Create landed, apply still in flight: no row in the list yet.
-    await waitFor(() => expect(client.patchTodosIdLabel).toHaveBeenCalled())
+    // Request in flight: previous label stays checked, picking is disabled.
+    await waitFor(() => expect(client.postTodosIdLabel).toHaveBeenCalled())
+    expect(screen.getByRole("radio", { name: "Work" })).toBeChecked()
+    expect(screen.getByRole("radio", { name: "Home" })).toHaveAttribute(
+      "aria-disabled",
+      "true"
+    )
     expect(screen.queryByRole("radio", { name: "Errands" })).toBeNull()
 
-    // Apply resolves: the row appears already checked.
+    // Request resolves: the row appears already checked in a single step.
     await act(async () => {
-      resolvePatch({ id: "todo-1", labelId: created.id })
+      resolvePost({
+        todo: { id: "todo-1", labelId: created.id },
+        label: created,
+      })
     })
     expect(await screen.findByRole("radio", { name: "Errands" })).toBeChecked()
+    expect(screen.getByRole("radio", { name: "Work" })).not.toBeChecked()
+    expect(screen.getByRole("radio", { name: "Home" })).not.toHaveAttribute(
+      "aria-disabled",
+      "true"
+    )
   })
 
   it("does not assign a new label when there is no target todo", async () => {

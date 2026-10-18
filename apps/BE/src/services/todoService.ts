@@ -1,7 +1,9 @@
 import { Prisma } from "@prisma/client"
 
 import { prisma } from "../lib/prisma.js"
+import type { CreatedTodoLabelDto, CreateLabelDto } from "../schemas/label.js"
 import type { CreateTodoDto, TodoDto } from "../schemas/todo.js"
+import { toLabelDto } from "./labelService.js"
 
 export async function listTodos(userId: string): Promise<TodoDto[]> {
   const todos = await prisma.todo.findMany({
@@ -101,6 +103,32 @@ export async function updateTodoLabel(
       error.code === "P2025"
     ) {
       return { ok: false, reason: "todo-not-found" }
+    }
+    throw error
+  }
+}
+
+export type CreateTodoLabelResult =
+  | ({ ok: true } & CreatedTodoLabelDto)
+  | { ok: false; reason: "todo-not-found" | "duplicate-name" }
+
+export async function createTodoLabel(
+  id: string,
+  input: CreateLabelDto,
+  userId: string
+): Promise<CreateTodoLabelResult> {
+  try {
+    const { label, ...todo } = await prisma.todo.update({
+      where: { id, userId },
+      data: { label: { create: { name: input.name, userId } } },
+      include: { label: true },
+    })
+
+    return { ok: true, todo: toDto(todo), label: toLabelDto(label!) }
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2025") return { ok: false, reason: "todo-not-found" }
+      if (error.code === "P2002") return { ok: false, reason: "duplicate-name" }
     }
     throw error
   }

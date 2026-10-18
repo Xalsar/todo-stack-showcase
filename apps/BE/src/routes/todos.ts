@@ -1,8 +1,10 @@
 import { Router } from "express"
 import { z } from "zod"
 
+import { CreatedTodoLabelSchema, CreateLabelSchema } from "../schemas/label.js"
 import {
   createTodo,
+  createTodoLabel,
   deleteTodo,
   listTodos,
   setTodoDone,
@@ -248,6 +250,69 @@ todosRouter.patch("/:id/label", async (req, res) => {
   }
 
   res.json(result.todo)
+})
+
+registry.registerPath({
+  method: "post",
+  path: "/todos/{id}/label",
+  request: {
+    params: TodoIdParamsSchema,
+    body: {
+      description: "Label to create and apply to the todo",
+      required: true,
+      content: {
+        "application/json": {
+          schema: CreateLabelSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    201: {
+      description: "Updated todo and the created label",
+      content: {
+        "application/json": {
+          schema: CreatedTodoLabelSchema,
+        },
+      },
+    },
+    404: {
+      description: "Todo not found",
+    },
+    409: {
+      description: "A label with this name already exists",
+    },
+  },
+})
+
+todosRouter.post("/:id/label", async (req, res) => {
+  const params = TodoIdParamsSchema.safeParse(req.params)
+  const body = CreateLabelSchema.safeParse(req.body)
+  if (!params.success || !body.success) {
+    res.status(400).json({
+      errors: [
+        ...(params.success ? [] : params.error.issues),
+        ...(body.success ? [] : body.error.issues),
+      ],
+    })
+    return
+  }
+
+  const result = await createTodoLabel(
+    params.data.id,
+    body.data,
+    req.userId as string
+  )
+  if (!result.ok) {
+    if (result.reason === "todo-not-found") {
+      res.status(404).json({ error: "Todo not found" })
+    } else {
+      res.status(409).json({ error: "A label with this name already exists" })
+    }
+    return
+  }
+
+  res.status(201).json({ todo: result.todo, label: result.label })
 })
 
 registry.registerPath({

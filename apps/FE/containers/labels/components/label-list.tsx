@@ -23,6 +23,7 @@ type LabelListProps = {
   onDelete: (id: string) => void
   selectedId?: string | null
   onSelect?: (value: string | null) => void
+  selectDisabled?: boolean
 }
 
 function LabelList({
@@ -33,6 +34,7 @@ function LabelList({
   onDelete,
   selectedId,
   onSelect,
+  selectDisabled,
 }: LabelListProps) {
   const selectable = selectedId !== undefined
 
@@ -58,6 +60,7 @@ function LabelList({
       aria-label="Label"
       className="gap-4"
       value={selectedId ?? NO_LABEL}
+      disabled={selectDisabled}
       onValueChange={(value) =>
         onSelect?.(value === NO_LABEL ? null : (value as string))
       }

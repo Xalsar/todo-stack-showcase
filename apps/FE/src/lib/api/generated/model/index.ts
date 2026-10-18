@@ -5,6 +5,7 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from "./createdTodoLabel"
 export * from "./createLabel"
 export * from "./createTodo"
 export * from "./label"

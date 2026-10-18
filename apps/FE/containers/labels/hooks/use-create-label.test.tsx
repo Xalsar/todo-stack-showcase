@@ -7,18 +7,24 @@ import type { Label } from "@/src/lib/api/generated/model"
 import { LabelNameConflictError } from "../label-errors"
 
 const getLabels = vi.hoisted(() => vi.fn())
+const getTodos = vi.hoisted(() => vi.fn())
 const postLabels = vi.hoisted(() => vi.fn())
+const postTodosIdLabel = vi.hoisted(() => vi.fn())
 
 vi.mock("@/src/lib/api/generated/client", async () => {
   const useSwr = (await import("swr")).default
   return {
     useGetLabels: () => useSwr(["/labels"], getLabels),
+    useGetTodos: () => useSwr(["/todos"], getTodos),
     postLabels,
+    postTodosIdLabel,
   }
 })
 
 const toastMock = vi.hoisted(() => ({ error: vi.fn() }))
 vi.mock("sonner", () => ({ toast: toastMock }))
+
+import { useGetTodos } from "@/src/lib/api/generated/client"
 
 import { useCreateLabel } from "./use-create-label"
 import { useLabels } from "./use-labels"
@@ -45,21 +51,32 @@ const home: Label = {
 beforeEach(() => {
   vi.clearAllMocks()
   getLabels.mockResolvedValue([work, home])
+  getTodos.mockResolvedValue(todos)
 })
+
+const todos = [
+  { id: "todo-1", labelId: work.id },
+  { id: "todo-2", labelId: null },
+]
 
 async function renderCreate() {
   const rendered = renderHook(
-    () => ({ labels: useLabels(), create: useCreateLabel() }),
+    () => ({
+      labels: useLabels(),
+      todos: useGetTodos(),
+      create: useCreateLabel(),
+    }),
     { wrapper }
   )
-  await waitFor(() =>
+  await waitFor(() => {
     expect(rendered.result.current.labels.data).toEqual([work, home])
-  )
+    expect(rendered.result.current.todos.data).toEqual(todos)
+  })
   return rendered
 }
 
 describe("useCreateLabel", () => {
-  it("optimistically adds then replaces with the created label", async () => {
+  it("adds the created label to the list", async () => {
     const created: Label = {
       id: "3",
       name: "Errands",
@@ -108,61 +125,43 @@ describe("useCreateLabel", () => {
     )
   })
 
-  it("skips the optimistic insert when reveal is false", async () => {
+  it("applies the created label to the target todo", async () => {
     const created: Label = {
       id: "3",
       name: "Errands",
       createdAt: "2024-01-03T00:00:00.000Z",
       updatedAt: "2024-01-03T00:00:00.000Z",
     }
-    postLabels.mockResolvedValue(created)
+    const updated = { id: "todo-2", labelId: created.id }
+    postTodosIdLabel.mockResolvedValue({ todo: updated, label: created })
     const { result } = await renderCreate()
 
-    let createdResult: Label | null = null
     await act(async () => {
-      createdResult = await result.current.create.onCreate("Errands", {
-        reveal: false,
-      })
+      await result.current.create.onCreate("Errands", { todoId: "todo-2" })
     })
 
-    expect(createdResult).toEqual(created)
-    expect(postLabels).toHaveBeenCalledWith({ name: "Errands" })
-    expect(result.current.labels.data).toEqual([work, home])
-    expect(result.current.create.failed).toBe(false)
-  })
-
-  it("revealLabel appends the created label to the list", async () => {
-    const created: Label = {
-      id: "3",
+    expect(postTodosIdLabel).toHaveBeenCalledWith("todo-2", {
       name: "Errands",
-      createdAt: "2024-01-03T00:00:00.000Z",
-      updatedAt: "2024-01-03T00:00:00.000Z",
-    }
-    const { result } = await renderCreate()
-
-    await act(async () => {
-      await result.current.create.revealLabel(created)
     })
-
+    expect(postLabels).not.toHaveBeenCalled()
     expect(result.current.labels.data).toEqual([work, home, created])
+    expect(result.current.todos.data).toEqual([todos[0], updated])
   })
 
-  it("leaves the list untouched on failure when reveal is false", async () => {
-    postLabels.mockRejectedValue(new Error("boom"))
+  it("leaves both lists untouched when creating for a todo fails", async () => {
+    postTodosIdLabel.mockRejectedValue(new Error("boom"))
     const { result } = await renderCreate()
 
     let createdResult: Label | null = null
     await act(async () => {
       createdResult = await result.current.create.onCreate("Errands", {
-        reveal: false,
+        todoId: "todo-2",
       })
     })
 
     expect(createdResult).toBeNull()
     expect(result.current.labels.data).toEqual([work, home])
+    expect(result.current.todos.data).toEqual(todos)
     expect(result.current.create.failed).toBe(true)
-    expect(toastMock.error).toHaveBeenCalledWith(
-      "Failed to create label. Is the backend running?"
-    )
   })
 })

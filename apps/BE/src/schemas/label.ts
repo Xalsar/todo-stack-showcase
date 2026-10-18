@@ -1,6 +1,6 @@
 import { z } from "zod"
 
-import { registry } from "./todo.js"
+import { registry, TodoSchema } from "./todo.js"
 
 export const LabelSchema = registry.register(
   "Label",
@@ -16,6 +16,14 @@ export const CreateLabelSchema = registry.register(
   "CreateLabel",
   z.object({
     name: z.string().min(1),
+  })
+)
+
+export const CreatedTodoLabelSchema = registry.register(
+  "CreatedTodoLabel",
+  z.object({
+    todo: TodoSchema,
+    label: LabelSchema,
   })
 )
 
@@ -35,5 +43,6 @@ export const LabelIdParamsSchema = registry.register(
 
 export type LabelDto = z.infer<typeof LabelSchema>
 export type CreateLabelDto = z.infer<typeof CreateLabelSchema>
+export type CreatedTodoLabelDto = z.infer<typeof CreatedTodoLabelSchema>
 export type UpdateLabelDto = z.infer<typeof UpdateLabelSchema>
 export type LabelIdParams = z.infer<typeof LabelIdParamsSchema>

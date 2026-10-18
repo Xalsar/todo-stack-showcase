@@ -298,6 +298,83 @@ describe("PATCH /todos/:id/label", () => {
   })
 })
 
+describe("POST /todos/:id/label", () => {
+  const labelRow = {
+    id: LABEL_ID,
+    name: "Errands",
+    createdAt: new Date("2024-01-03T00:00:00.000Z"),
+    updatedAt: new Date("2024-01-03T00:00:00.000Z"),
+    userId: USER_ID,
+  }
+
+  it("creates a label, applies it, and returns the todo and label", async () => {
+    prismaMock.todo.update.mockResolvedValue({
+      ...makeTodo({ labelId: LABEL_ID }),
+      label: labelRow,
+    })
+
+    const res = await request(app)
+      .post(`/todos/${TODO_ID}/label`)
+      .send({ name: "Errands" })
+
+    expect(res.status).toBe(201)
+    expect(res.body.todo).toMatchObject({ id: TODO_ID, labelId: LABEL_ID })
+    expect(res.body.label).toEqual({
+      id: LABEL_ID,
+      name: "Errands",
+      createdAt: "2024-01-03T00:00:00.000Z",
+      updatedAt: "2024-01-03T00:00:00.000Z",
+    })
+  })
+
+  it("rejects an empty name with 400", async () => {
+    const res = await request(app)
+      .post(`/todos/${TODO_ID}/label`)
+      .send({ name: "" })
+
+    expect(res.status).toBe(400)
+    expect(prismaMock.todo.update).not.toHaveBeenCalled()
+  })
+
+  it("rejects a non-uuid id with 400", async () => {
+    const res = await request(app)
+      .post("/todos/not-a-uuid/label")
+      .send({ name: "Errands" })
+
+    expect(res.status).toBe(400)
+    expect(prismaMock.todo.update).not.toHaveBeenCalled()
+  })
+
+  it("returns 404 when the todo does not exist", async () => {
+    prismaMock.todo.update.mockRejectedValue(notFoundError())
+
+    const res = await request(app)
+      .post(`/todos/${TODO_ID}/label`)
+      .send({ name: "Errands" })
+
+    expect(res.status).toBe(404)
+    expect(res.body).toEqual({ error: "Todo not found" })
+  })
+
+  it("returns 409 when the name already exists", async () => {
+    prismaMock.todo.update.mockRejectedValue(
+      new Prisma.PrismaClientKnownRequestError("Unique constraint failed", {
+        code: "P2002",
+        clientVersion: "6.0.0",
+      })
+    )
+
+    const res = await request(app)
+      .post(`/todos/${TODO_ID}/label`)
+      .send({ name: "Work" })
+
+    expect(res.status).toBe(409)
+    expect(res.body).toEqual({
+      error: "A label with this name already exists",
+    })
+  })
+})
+
 describe("DELETE /todos/:id", () => {
   it("deletes the todo", async () => {
     prismaMock.todo.delete.mockResolvedValue(makeTodo())

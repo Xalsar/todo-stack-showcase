@@ -13,6 +13,7 @@ import type { SWRMutationConfiguration } from "swr/mutation"
 import type {
   CreateLabel,
   CreateTodo,
+  CreatedTodoLabel,
   Label,
   SetTodoDone,
   Todo,
@@ -496,6 +497,64 @@ export const usePatchTodosIdLabel = <TError = void>(
 
   const swrKey = swrOptions?.swrKey ?? getPatchTodosIdLabelMutationKey(id)
   const swrFn = getPatchTodosIdLabelMutationFetcher(id, requestOptions)
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query,
+  }
+}
+
+export const getPostTodosIdLabelUrl = (id: string) => {
+  return `/todos/${id}/label`
+}
+
+export const postTodosIdLabel = async (
+  id: string,
+  createLabel: CreateLabel,
+  options?: Parameters<typeof todoFetch>[1]
+): Promise<CreatedTodoLabel> => {
+  return todoFetch<CreatedTodoLabel>(getPostTodosIdLabelUrl(id), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createLabel),
+  })
+}
+
+export const getPostTodosIdLabelMutationFetcher = (
+  id: string,
+  options?: SecondParameter<typeof todoFetch>
+) => {
+  return (_: Key, { arg }: { arg: CreateLabel }) => {
+    return postTodosIdLabel(id, arg, options)
+  }
+}
+export const getPostTodosIdLabelMutationKey = (id: string) =>
+  [`/todos/${id}/label`] as const
+
+export type PostTodosIdLabelMutationResult = NonNullable<
+  Awaited<ReturnType<typeof postTodosIdLabel>>
+>
+
+export const usePostTodosIdLabel = <TError = void>(
+  id: string,
+  options?: {
+    swr?: SWRMutationConfiguration<
+      Awaited<ReturnType<typeof postTodosIdLabel>>,
+      TError,
+      Key,
+      CreateLabel,
+      Awaited<ReturnType<typeof postTodosIdLabel>>
+    > & { swrKey?: string }
+    request?: SecondParameter<typeof todoFetch>
+  }
+) => {
+  const { swr: swrOptions, request: requestOptions } = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getPostTodosIdLabelMutationKey(id)
+  const swrFn = getPostTodosIdLabelMutationFetcher(id, requestOptions)
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions)
 

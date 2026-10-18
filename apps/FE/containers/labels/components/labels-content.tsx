@@ -24,6 +24,7 @@ type LabelsContentProps = {
   onDelete: (id: string) => void
   selectedId?: string | null
   onSelect?: (id: string | null) => void
+  selectDisabled?: boolean
 }
 
 function LabelsContent({

@@ -13,7 +13,7 @@ export async function listLabels(userId: string): Promise<LabelDto[]> {
     orderBy: { name: "asc" },
   })
 
-  return labels.map(toDto)
+  return labels.map(toLabelDto)
 }
 
 export type CreateLabelResult =
@@ -28,7 +28,7 @@ export async function createLabel(
       data: { name: input.name, userId },
     })
 
-    return { ok: true, label: toDto(label) }
+    return { ok: true, label: toLabelDto(label) }
   } catch (error) {
     if (isUniqueConstraintError(error)) {
       return { ok: false, reason: "duplicate-name" }
@@ -52,7 +52,7 @@ export async function updateLabel(
       data: { name: input.name },
     })
 
-    return { ok: true, label: toDto(label) }
+    return { ok: true, label: toLabelDto(label) }
   } catch (error) {
     if (isNotFoundError(error)) {
       return { ok: false, reason: "not-found" }
@@ -94,7 +94,7 @@ function isUniqueConstraintError(error: unknown): boolean {
   )
 }
 
-function toDto(label: {
+export function toLabelDto(label: {
   id: string
   name: string
   createdAt: Date

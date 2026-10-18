@@ -18,6 +18,7 @@ vi.mock("../lib/prisma.js", () => ({ prisma: prismaMock }))
 
 import {
   createTodo,
+  createTodoLabel,
   deleteTodo,
   listTodos,
   setTodoDone,
@@ -228,6 +229,71 @@ describe("updateTodoLabel", () => {
     await expect(updateTodoLabel(TODO_ID, LABEL_ID, USER_ID)).rejects.toThrow(
       "boom"
     )
+  })
+})
+
+describe("createTodoLabel", () => {
+  const labelRow = {
+    id: LABEL_ID,
+    name: "Errands",
+    createdAt: new Date("2024-01-03T00:00:00.000Z"),
+    updatedAt: new Date("2024-01-03T00:00:00.000Z"),
+    userId: USER_ID,
+  }
+
+  it("creates the label on the todo and returns both", async () => {
+    prismaMock.todo.update.mockResolvedValue({
+      ...makeTodo({ labelId: LABEL_ID }),
+      label: labelRow,
+    })
+
+    const result = await createTodoLabel(TODO_ID, { name: "Errands" }, USER_ID)
+
+    expect(prismaMock.todo.update).toHaveBeenCalledWith({
+      where: { id: TODO_ID, userId: USER_ID },
+      data: { label: { create: { name: "Errands", userId: USER_ID } } },
+      include: { label: true },
+    })
+    expect(result).toEqual({
+      ok: true,
+      todo: expect.objectContaining({ id: TODO_ID, labelId: LABEL_ID }),
+      label: {
+        id: LABEL_ID,
+        name: "Errands",
+        createdAt: "2024-01-03T00:00:00.000Z",
+        updatedAt: "2024-01-03T00:00:00.000Z",
+      },
+    })
+    expect(result.ok && result.todo).not.toHaveProperty("label")
+  })
+
+  it("reports a missing todo when the update throws P2025", async () => {
+    prismaMock.todo.update.mockRejectedValue(notFoundError())
+
+    const result = await createTodoLabel(TODO_ID, { name: "Errands" }, USER_ID)
+
+    expect(result).toEqual({ ok: false, reason: "todo-not-found" })
+  })
+
+  it("reports a duplicate name when the unique constraint fails", async () => {
+    prismaMock.todo.update.mockRejectedValue(
+      new Prisma.PrismaClientKnownRequestError("Unique constraint failed", {
+        code: "P2002",
+        clientVersion: "6.0.0",
+      })
+    )
+
+    const result = await createTodoLabel(TODO_ID, { name: "Work" }, USER_ID)
+
+    expect(result).toEqual({ ok: false, reason: "duplicate-name" })
+  })
+
+  it("rethrows unexpected prisma errors", async () => {
+    prismaMock.todo.update.mockRejectedValue(new Error("boom"))
+
+    await expect(
+      createTodoLabel(TODO_ID, { name: "Errands" }, USER_ID)
+    ).rejects.toThrow("boom")
   })
 })
 
