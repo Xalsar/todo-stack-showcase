@@ -44,11 +44,16 @@ function LabelManager() {
     )
   }, [selectedTodo, todos])
 
-  const deletingAffectedCount = useMemo(() => {
-    if (!deletingLabel) return 0
-    return (todos ?? []).filter((todo) => todo.labelId === deletingLabel.id)
-      .length
-  }, [todos, deletingLabel])
+  const countTodosUsing = useCallback(
+    (labelId: string) =>
+      todos?.filter((todo) => todo.labelId === labelId).length,
+    [todos]
+  )
+
+  const deletingAffectedCount = useMemo(
+    () => (deletingLabel ? countTodosUsing(deletingLabel.id) : undefined),
+    [deletingLabel, countTodosUsing]
+  )
 
   const handleSelectLabel = useCallback(
     (labelId: string | null) => {
@@ -69,9 +74,15 @@ function LabelManager() {
   const handleDeleteRequest = useCallback(
     (id: string) => {
       const label = labels?.find((l) => l.id === id)
-      if (label) setDeletingLabel(label)
+      if (!label) return
+
+      if (countTodosUsing(id) === 0) {
+        void onDelete(id)
+        return
+      }
+      setDeletingLabel(label)
     },
-    [labels]
+    [labels, countTodosUsing, onDelete]
   )
 
   return (

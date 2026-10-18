@@ -20,7 +20,7 @@ import { AffectedTodosNotice } from "./affected-todos-notice"
 
 type DeleteLabelDialogProps = {
   labelName: string
-  affectedTodos: number
+  affectedTodos: number | undefined
   isDeleting?: boolean
   onConfirm: () => void
   open?: boolean
@@ -52,7 +52,9 @@ function DeleteLabelDialog({
             This permanently deletes the label and can&rsquo;t be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <AffectedTodosNotice count={affectedTodos} />
+        {affectedTodos !== undefined && (
+          <AffectedTodosNotice count={affectedTodos} />
+        )}
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
           <AlertDialogAction

@@ -20,6 +20,8 @@ fetching. An orval-generated SWR client from the committed `apps/BE/openapi.json
 - Tests run with Vitest (`pnpm test`) — see [Testing](#testing) below. Also verify changes with `pnpm build`
   (BE: tsc strict; FE: `next build`, includes typecheck). FE has `lint` (eslint) / `typecheck` scripts;
   run via `pnpm --filter FE <script>`.
+- `pnpm typecheck` — type-check every package, tests included (BE, FE, e2e). Per side: `be:typecheck` /
+  `fe:typecheck`. Builds don't type-check test files, so run this too.
 
 ## Testing
 
@@ -34,6 +36,8 @@ fetching. An orval-generated SWR client from the committed `apps/BE/openapi.json
   `apps/BE/src/server.ts` only calls `listen`.
 - BE test files are excluded from the build (`tsconfig.json`) but type-checked by `pnpm be:typecheck`
   (`tsconfig.test.json`).
+- FE is the inverse: `tsconfig.json` includes tests (editor + `pnpm --filter FE typecheck`), while
+  `next build` uses `tsconfig.build.json` (via `typescript.tsconfigPath`), which excludes them.
 - FE: `jsdom` + Testing Library. `apps/FE/vitest.setup.ts` imports jest-dom and registers
   `afterEach(cleanup)` (required because globals are off). The generated client and shadcn primitives
   are mocked / excluded from coverage.

@@ -87,17 +87,13 @@ Type error: Cannot find module 'vitest/config' or its corresponding type declara
 ```
 
 ### Solution
-Exclude test files from the app's TypeScript configuration:
+Exclude test files from the tsconfig that **the build** uses, not from `tsconfig.json` itself. The FE
+uses two configs:
 
 ```json
-// apps/FE/tsconfig.json
+// apps/FE/tsconfig.build.json — used by `next build` (locally and on Vercel)
 {
-  "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts"
-  ],
+  "extends": "./tsconfig.json",
   "exclude": [
     "node_modules",
     "vitest.config.ts",
@@ -108,13 +104,28 @@ Exclude test files from the app's TypeScript configuration:
 }
 ```
 
+```typescript
+// apps/FE/next.config.ts — point the build at it
+const nextConfig: NextConfig = {
+  typescript: { tsconfigPath: "tsconfig.build.json" },
+}
+```
+
+`apps/FE/tsconfig.json` keeps test files included (`"exclude": ["node_modules"]`) so VS Code resolves
+the `@/` alias in tests and `pnpm typecheck` / `pnpm fe:typecheck` type-checks them.
+
+**Don't re-add test exclusions to `apps/FE/tsconfig.json`.** If you do, VS Code reports false
+`Cannot find module '@/...'` errors in tests and nothing type-checks them anymore (`next build` skips
+them by design and Vitest never type-checks).
+
 ### Why This Happens
 - Monorepo test configs often import from root-level dependencies
 - Next.js build runs `tsc --noEmit` which checks all included files
 - If test files are included, they fail because the deps aren't in the app's package.json
 
 ### Prevention
-- Always exclude test files from app tsconfig.json in monorepos
+- Always exclude test files from the tsconfig the build uses (FE: `tsconfig.build.json`, wired via
+  `typescript.tsconfigPath` in `next.config.ts`; `tsconfig.json` keeps tests for editor/typecheck)
 - Keep test configs in a separate directory or use a root-level vitest config
 - Verify builds work locally before deploying
 
@@ -345,7 +356,7 @@ curl https://api.example.com/health
    - Set environment variables
    - Deploy and verify health check
 4. **Prepare frontend**
-   - Exclude test files from tsconfig
+   - Exclude test files from the build tsconfig (`tsconfig.build.json`, see §3)
    - Consolidate env vars
    - Update API base URL config
 5. **Deploy frontend to Vercel**
@@ -377,7 +388,7 @@ curl https://api.example.com/health
 |-------|-------|----------|
 | `FUNCTION_INVOCATION_FAILED` | Missing default export | Add `export default app` |
 | `CORS error` | Wrong API URL or CORS_ORIGIN | Check env vars match production URLs |
-| `Cannot find module 'vitest/config'` | Test files in build | Exclude test files from tsconfig.json |
+| `Cannot find module 'vitest/config'` | Test files in build | Exclude test files from `tsconfig.build.json` (see §3) |
 | `redirect_uri_mismatch` | Google OAuth not configured | Add production URLs to Google Cloud Console |
 | `403: forbidden` (Vercel MCP) | Permission issues | Use Vercel CLI as fallback |
 | `Session cookie not set` | Cross-subdomain issue | Enable crossSubDomainCookies in auth config |

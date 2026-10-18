@@ -66,6 +66,18 @@ describe("DeleteLabelDialog", () => {
     ).toBeInTheDocument()
   })
 
+  it("omits the usage notice when the count is unknown", async () => {
+    const { user } = renderDialog({ affectedTodos: undefined })
+
+    await user.click(screen.getByRole("button", { name: "Open" }))
+
+    expect(
+      await screen.findByText(/permanently deletes the label/i)
+    ).toBeInTheDocument()
+    expect(screen.queryByText(/no todos use this label/i)).toBeNull()
+    expect(screen.queryByText(/applied to/i)).toBeNull()
+  })
+
   it("uses singular copy when one todo uses the label", async () => {
     const { user } = renderDialog({ affectedTodos: 1 })
 

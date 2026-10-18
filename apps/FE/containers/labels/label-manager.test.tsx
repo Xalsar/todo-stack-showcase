@@ -98,6 +98,13 @@ function notify() {
   listeners.forEach((listener) => listener())
 }
 
+function applyWorkToATodo() {
+  todos.value = {
+    data: [{ id: "todo-1", labelId: work.id }],
+    mutate: client.todosMutate,
+  }
+}
+
 function renderManager(selectedTodo: SelectedTodo | null = null) {
   useLabelManager.setState({ open: true, selectedTodo })
   render(<LabelManager />)
@@ -351,7 +358,20 @@ describe("LabelManager", () => {
     ).toBeInTheDocument()
   })
 
-  it("opens the delete dialog when the delete button is clicked", async () => {
+  it("deletes an unused label without confirmation", async () => {
+    const user = userEvent.setup()
+    renderManager(null)
+
+    await user.click(await screen.findByRole("button", { name: "Delete Work" }))
+
+    await waitFor(() => expect(client.deleteLabelsId).toHaveBeenCalledWith("1"))
+    expect(
+      screen.queryByText(/permanently deletes the label/i)
+    ).not.toBeInTheDocument()
+  })
+
+  it("opens the delete dialog when the label is in use", async () => {
+    applyWorkToATodo()
     const user = userEvent.setup()
     renderManager(null)
 
@@ -360,6 +380,7 @@ describe("LabelManager", () => {
     expect(
       await screen.findByText(/permanently deletes the label/i)
     ).toBeInTheDocument()
+    expect(client.deleteLabelsId).not.toHaveBeenCalled()
   })
 
   it("shows how many todos use the label in the delete dialog", async () => {
@@ -379,7 +400,7 @@ describe("LabelManager", () => {
     expect(await screen.findByText(/applied to 2 todos/i)).toBeInTheDocument()
   })
 
-  it("reports no affected todos when the todo list is unavailable", async () => {
+  it("confirms without a usage notice when the todo list is unavailable", async () => {
     todos.value = { data: undefined, mutate: client.todosMutate }
     const user = userEvent.setup()
     renderManager(null)
@@ -387,11 +408,36 @@ describe("LabelManager", () => {
     await user.click(await screen.findByRole("button", { name: "Delete Work" }))
 
     expect(
-      await screen.findByText(/no todos use this label/i)
+      await screen.findByText(/permanently deletes the label/i)
+    ).toBeInTheDocument()
+    expect(screen.queryByText(/no todos use this label/i)).toBeNull()
+    expect(client.deleteLabelsId).not.toHaveBeenCalled()
+  })
+
+  it("keeps the dialog open and updates the notice once todos load", async () => {
+    todos.value = { data: undefined, mutate: client.todosMutate }
+    const user = userEvent.setup()
+    renderManager(null)
+
+    await user.click(await screen.findByRole("button", { name: "Delete Work" }))
+    await screen.findByText(/permanently deletes the label/i)
+
+    act(() => {
+      todos.value = {
+        data: [{ id: "todo-1", labelId: work.id }],
+        mutate: client.todosMutate,
+      }
+      notify()
+    })
+
+    expect(await screen.findByText(/applied to 1 todo\b/i)).toBeInTheDocument()
+    expect(
+      screen.getByText(/permanently deletes the label/i)
     ).toBeInTheDocument()
   })
 
   it("deletes the label when the dialog is confirmed", async () => {
+    applyWorkToATodo()
     const user = userEvent.setup()
     renderManager(null)
 
@@ -404,6 +450,7 @@ describe("LabelManager", () => {
   })
 
   it("closes the delete dialog when cancel is clicked", async () => {
+    applyWorkToATodo()
     const user = userEvent.setup()
     renderManager(null)
 
