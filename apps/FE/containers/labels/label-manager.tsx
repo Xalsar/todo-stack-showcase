@@ -26,11 +26,6 @@ import { useLabels } from "./hooks/use-labels"
 import { useRenameLabel } from "./hooks/use-rename-label"
 import { isNameConflict } from "./label-errors"
 
-type PendingDelete = {
-  label: Label
-  frozenAffectedTodos?: number
-}
-
 function LabelManager() {
   const { open, onOpenChange, selectedTodo } = useLabelManager()
   const isDesktop = useIsDesktop()
@@ -40,7 +35,7 @@ function LabelManager() {
   const { onRename, renamingId } = useRenameLabel()
   const { onDelete, deletingId } = useDeleteLabel()
   const { applyLabel } = useApplyLabelToTodo()
-  const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(null)
+  const [labelToDelete, setLabelToDelete] = useState<Label | null>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
 
   const selectedLabelId = useMemo(() => {
@@ -55,22 +50,6 @@ function LabelManager() {
       todos?.filter((todo) => todo.labelId === labelId).length,
     [todos]
   )
-
-  const deletingAffectedCount = useMemo(() => {
-    if (!pendingDelete) return undefined
-    return deleteDialogOpen
-      ? countTodosUsing(pendingDelete.label.id)
-      : pendingDelete.frozenAffectedTodos
-  }, [pendingDelete, deleteDialogOpen, countTodosUsing])
-
-  const closeDeleteDialog = useCallback(() => {
-    setPendingDelete((current) =>
-      current
-        ? { ...current, frozenAffectedTodos: deletingAffectedCount }
-        : current
-    )
-    setDeleteDialogOpen(false)
-  }, [deletingAffectedCount])
 
   const handleSelectLabel = useCallback(
     (labelId: string | null) => {
@@ -97,7 +76,7 @@ function LabelManager() {
         void onDelete(id)
         return
       }
-      setPendingDelete({ label })
+      setLabelToDelete(label)
       setDeleteDialogOpen(true)
     },
     [labels, countTodosUsing, onDelete]
@@ -165,20 +144,20 @@ function LabelManager() {
         </DrawerContent>
       </Drawer>
 
-      {pendingDelete && (
+      {labelToDelete && (
         <DeleteLabelDialog
-          labelName={pendingDelete.label.name}
-          affectedTodos={deletingAffectedCount}
+          labelName={labelToDelete.name}
+          affectedTodos={countTodosUsing(labelToDelete.id)}
           onConfirm={() => {
-            closeDeleteDialog()
-            void onDelete(pendingDelete.label.id)
+            setDeleteDialogOpen(false)
+            void onDelete(labelToDelete.id)
           }}
           open={deleteDialogOpen}
           onOpenChange={(isOpen) => {
-            if (!isOpen) closeDeleteDialog()
+            if (!isOpen) setDeleteDialogOpen(false)
           }}
           onOpenChangeComplete={(isOpen) => {
-            if (!isOpen) setPendingDelete(null)
+            if (!isOpen) setLabelToDelete(null)
           }}
         />
       )}

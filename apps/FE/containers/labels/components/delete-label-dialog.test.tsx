@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
-import { describe, expect, it, vi } from "vitest"
+import { afterEach, describe, expect, it, vi } from "vitest"
 
 import { Button } from "@/components/ui/button"
 
@@ -41,7 +41,20 @@ function renderControlledDialog(
   return { onConfirm, onOpenChange, user: userEvent.setup() }
 }
 
+// jsdom has no Web Animations API, so Base UI unmounts a closing dialog at once.
+// A never-finishing animation holds it in its closing phase.
+function holdCloseAnimation() {
+  Object.defineProperty(Element.prototype, "getAnimations", {
+    configurable: true,
+    value: () => [{ finished: new Promise(() => {}) }],
+  })
+}
+
 describe("DeleteLabelDialog", () => {
+  afterEach(() => {
+    Reflect.deleteProperty(Element.prototype, "getAnimations")
+  })
+
   it("warns about unassigning and confirms deletion", async () => {
     const { onConfirm, user } = renderDialog({ affectedTodos: 3 })
 
@@ -119,5 +132,50 @@ describe("DeleteLabelDialog", () => {
     )
 
     expect(onConfirm).toHaveBeenCalledTimes(1)
+  })
+
+  it.each([
+    ["confirmed", "Delete label"],
+    ["cancelled", "Cancel"],
+  ])(
+    "keeps the affected count steady while closing when %s",
+    async (_, buttonName) => {
+      const user = userEvent.setup()
+      const { rerender } = render(
+        <DeleteLabelDialog
+          labelName="Work"
+          affectedTodos={3}
+          onConfirm={vi.fn()}
+          open
+        />
+      )
+
+      const button = await screen.findByRole("button", { name: buttonName })
+      holdCloseAnimation()
+      await user.click(button)
+      rerender(
+        <DeleteLabelDialog
+          labelName="Work"
+          affectedTodos={0}
+          onConfirm={vi.fn()}
+          open={false}
+        />
+      )
+
+      expect(screen.getByText(/applied to 3 todos/i)).toBeInTheDocument()
+      expect(screen.queryByText(/no todos use this label/i)).toBeNull()
+    }
+  )
+
+  it("shows the live count while open", async () => {
+    const props = { labelName: "Work", onConfirm: vi.fn(), open: true }
+    const { rerender } = render(
+      <DeleteLabelDialog {...props} affectedTodos={3} />
+    )
+    expect(await screen.findByText(/applied to 3 todos/i)).toBeInTheDocument()
+
+    rerender(<DeleteLabelDialog {...props} affectedTodos={1} />)
+
+    expect(screen.getByText(/applied to 1 todo\b/i)).toBeInTheDocument()
   })
 })

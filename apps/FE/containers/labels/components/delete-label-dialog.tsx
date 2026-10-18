@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { TriangleAlert } from "lucide-react"
 
 import {
@@ -22,7 +23,7 @@ type DeleteLabelDialogProps = {
   affectedTodos: number | undefined
   onConfirm: () => void
   open?: boolean
-  onOpenChange?: (open: boolean) => void
+  onOpenChange?: React.ComponentProps<typeof AlertDialog>["onOpenChange"]
   onOpenChangeComplete?: (open: boolean) => void
   children?: React.ReactElement
 }
@@ -37,12 +38,25 @@ function DeleteLabelDialog({
   children,
 }: DeleteLabelDialogProps) {
   const isControlled = open !== undefined
+  // Keeps the count steady while the dialog animates closed: the caller's live
+  // count can change mid-animation (e.g. an optimistic delete drops it to 0).
+  const [frozenCount, setFrozenCount] = useState<number | null>(null)
+  const shownCount = frozenCount ?? affectedTodos
+
+  const freezeCount = () => setFrozenCount(affectedTodos ?? null)
 
   return (
     <AlertDialog
       open={open}
-      onOpenChange={onOpenChange}
-      onOpenChangeComplete={onOpenChangeComplete}
+      onOpenChange={(isOpen, eventDetails) => {
+        if (isOpen) setFrozenCount(null)
+        else freezeCount()
+        onOpenChange?.(isOpen, eventDetails)
+      }}
+      onOpenChangeComplete={(isOpen) => {
+        if (!isOpen) setFrozenCount(null)
+        onOpenChangeComplete?.(isOpen)
+      }}
     >
       {!isControlled && children && <AlertDialogTrigger render={children} />}
       <AlertDialogContent>
@@ -55,14 +69,16 @@ function DeleteLabelDialog({
             This permanently deletes the label and can&rsquo;t be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
-        {affectedTodos !== undefined && (
-          <AffectedTodosNotice count={affectedTodos} />
-        )}
+        {shownCount !== undefined && <AffectedTodosNotice count={shownCount} />}
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
           <AlertDialogAction
             variant="destructive"
-            onClick={onConfirm}
+            onClick={() => {
+              // Confirm closes via the parent's `open` prop, not onOpenChange.
+              freezeCount()
+              onConfirm()
+            }}
             aria-label="Delete label"
           >
             Delete
