@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useMemo, useState } from "react"
+import { useCallback } from "react"
 
 import { AddForm } from "@/components/add-form"
 import { Button } from "@/components/ui/button"
@@ -12,52 +12,26 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer"
-import { useGetTodos } from "@/src/lib/api/generated/client"
-import type { Label } from "@/src/lib/api/generated/model"
 
 import { DeleteLabelDialog } from "./components/delete-label-dialog"
 import { LabelsContent } from "./components/labels-content"
-import { useApplyLabelToTodo } from "./hooks/use-apply-label-to-todo"
 import { useCreateLabel } from "./hooks/use-create-label"
-import { useDeleteLabel } from "./hooks/use-delete-label"
+import { useDeleteLabelFlow } from "./hooks/use-delete-label-flow"
 import { useIsDesktop } from "./hooks/use-is-desktop"
 import { useLabelManager } from "./store/label-manager"
 import { useLabels } from "./hooks/use-labels"
 import { useRenameLabel } from "./hooks/use-rename-label"
+import { useTodoLabelSelection } from "./hooks/use-todo-label-selection"
 import { isNameConflict } from "./label-errors"
 
 function LabelManager() {
   const { open, onOpenChange, selectedTodo } = useLabelManager()
   const isDesktop = useIsDesktop()
   const { data: labels, error, isLoading } = useLabels()
-  const { data: todos } = useGetTodos()
   const { onCreate, isSubmitting, failed } = useCreateLabel()
   const { onRename, renamingId } = useRenameLabel()
-  const { onDelete, deletingId } = useDeleteLabel()
-  const { applyLabel } = useApplyLabelToTodo()
-  const [labelToDelete, setLabelToDelete] = useState<Label | null>(null)
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-
-  const selectedLabelId = useMemo(() => {
-    if (!selectedTodo) return undefined
-    return (
-      todos?.find((todo) => todo.id === selectedTodo.todoId)?.labelId ?? null
-    )
-  }, [selectedTodo, todos])
-
-  const countTodosUsing = useCallback(
-    (labelId: string) =>
-      todos?.filter((todo) => todo.labelId === labelId).length,
-    [todos]
-  )
-
-  const handleSelectLabel = useCallback(
-    (labelId: string | null) => {
-      if (!selectedTodo) return
-      applyLabel(selectedTodo.todoId, labelId)
-    },
-    [selectedTodo, applyLabel]
-  )
+  const { requestDelete, deletingId, deleteDialogProps } = useDeleteLabelFlow()
+  const { selectedLabelId, selectLabel } = useTodoLabelSelection()
 
   const handleCreate = useCallback(
     async (name: string) => {
@@ -65,21 +39,6 @@ function LabelManager() {
       return created !== null
     },
     [onCreate, selectedTodo]
-  )
-
-  const handleDeleteRequest = useCallback(
-    (id: string) => {
-      const label = labels?.find((l) => l.id === id)
-      if (!label) return
-
-      if (countTodosUsing(id) === 0) {
-        void onDelete(id)
-        return
-      }
-      setLabelToDelete(label)
-      setDeleteDialogOpen(true)
-    },
-    [labels, countTodosUsing, onDelete]
   )
 
   return (
@@ -125,9 +84,9 @@ function LabelManager() {
               renamingId={renamingId}
               deletingId={deletingId}
               onRename={onRename}
-              onDelete={handleDeleteRequest}
+              onDelete={requestDelete}
               selectedId={selectedLabelId}
-              onSelect={handleSelectLabel}
+              onSelect={selectLabel}
               selectDisabled={isSubmitting}
             />
           </div>
@@ -144,17 +103,14 @@ function LabelManager() {
         </DrawerContent>
       </Drawer>
 
-      {labelToDelete && (
+      {deleteDialogProps && (
         <DeleteLabelDialog
-          open={deleteDialogOpen}
-          labelName={labelToDelete.name}
-          affectedTodos={countTodosUsing(labelToDelete.id)}
-          onConfirm={() => {
-            setDeleteDialogOpen(false)
-            void onDelete(labelToDelete.id)
-          }}
-          onClose={() => setDeleteDialogOpen(false)}
-          onClosed={() => setLabelToDelete(null)}
+          open={deleteDialogProps.open}
+          labelName={deleteDialogProps.labelName}
+          affectedTodos={deleteDialogProps.affectedTodos}
+          onConfirm={deleteDialogProps.onConfirm}
+          onClose={deleteDialogProps.onClose}
+          onClosed={deleteDialogProps.onClosed}
         />
       )}
     </>
