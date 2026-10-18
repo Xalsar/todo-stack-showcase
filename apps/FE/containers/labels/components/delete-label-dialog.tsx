@@ -14,33 +14,36 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { Spinner } from "@/components/ui/spinner"
 
 import { AffectedTodosNotice } from "./affected-todos-notice"
 
 type DeleteLabelDialogProps = {
   labelName: string
   affectedTodos: number | undefined
-  isDeleting?: boolean
   onConfirm: () => void
   open?: boolean
   onOpenChange?: (open: boolean) => void
+  onOpenChangeComplete?: (open: boolean) => void
   children?: React.ReactElement
 }
 
 function DeleteLabelDialog({
   labelName,
   affectedTodos,
-  isDeleting = false,
   onConfirm,
   open,
   onOpenChange,
+  onOpenChangeComplete,
   children,
 }: DeleteLabelDialogProps) {
   const isControlled = open !== undefined
 
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
+    <AlertDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      onOpenChangeComplete={onOpenChangeComplete}
+    >
       {!isControlled && children && <AlertDialogTrigger render={children} />}
       <AlertDialogContent>
         <AlertDialogHeader>
@@ -56,14 +59,12 @@ function DeleteLabelDialog({
           <AffectedTodosNotice count={affectedTodos} />
         )}
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
           <AlertDialogAction
             variant="destructive"
             onClick={onConfirm}
-            disabled={isDeleting}
             aria-label="Delete label"
           >
-            {isDeleting ? <Spinner /> : null}
             Delete
           </AlertDialogAction>
         </AlertDialogFooter>

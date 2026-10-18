@@ -449,6 +449,50 @@ describe("LabelManager", () => {
     await waitFor(() => expect(client.deleteLabelsId).toHaveBeenCalledWith("1"))
   })
 
+  it("closes the dialog on confirm without waiting for the request", async () => {
+    todos.value = {
+      data: [
+        { id: "todo-1", labelId: work.id },
+        { id: "todo-2", labelId: work.id },
+      ],
+      mutate: client.todosMutate,
+    }
+    client.deleteLabelsId.mockImplementation(() => new Promise(() => {}))
+    const user = userEvent.setup()
+    renderManager(null)
+
+    await user.click(await screen.findByRole("button", { name: "Delete Work" }))
+    expect(await screen.findByText(/applied to 2 todos/i)).toBeInTheDocument()
+    await user.click(screen.getByRole("button", { name: "Delete label" }))
+
+    await waitFor(() => expect(client.deleteLabelsId).toHaveBeenCalledWith("1"))
+    expect(
+      screen.queryByText(/permanently deletes the label/i)
+    ).not.toBeInTheDocument()
+    expect(screen.queryByText(/no todos use this label/i)).toBeNull()
+    expect(todos.value.data).toEqual([
+      { id: "todo-1", labelId: null },
+      { id: "todo-2", labelId: null },
+    ])
+  })
+
+  it("restores the label on its todos when a confirmed delete fails", async () => {
+    applyWorkToATodo()
+    client.deleteLabelsId.mockRejectedValue(new Error("boom"))
+    const user = userEvent.setup()
+    renderManager(null)
+
+    await user.click(await screen.findByRole("button", { name: "Delete Work" }))
+    await user.click(
+      await screen.findByRole("button", { name: "Delete label" })
+    )
+
+    await waitFor(() =>
+      expect(todos.value.data).toEqual([{ id: "todo-1", labelId: work.id }])
+    )
+    expect(screen.getByText("Work")).toBeInTheDocument()
+  })
+
   it("closes the delete dialog when cancel is clicked", async () => {
     applyWorkToATodo()
     const user = userEvent.setup()

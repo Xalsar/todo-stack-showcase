@@ -95,17 +95,6 @@ describe("DeleteLabelDialog", () => {
     expect(onConfirm).not.toHaveBeenCalled()
   })
 
-  it("shows a pending state while deleting", async () => {
-    const { user } = renderDialog({ isDeleting: true })
-
-    await user.click(screen.getByRole("button", { name: "Open" }))
-
-    expect(
-      await screen.findByRole("button", { name: "Delete label" })
-    ).toBeDisabled()
-    expect(screen.getByRole("button", { name: "Cancel" })).toBeDisabled()
-  })
-
   it("opens immediately when controlled with open prop", async () => {
     renderControlledDialog()
 

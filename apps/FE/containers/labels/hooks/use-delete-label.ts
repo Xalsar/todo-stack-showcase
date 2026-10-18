@@ -9,11 +9,15 @@ import { useLabels } from "./use-labels"
 
 function useDeleteLabel() {
   const { data: labels, mutate } = useLabels()
-  const { mutate: mutateTodos } = useGetTodos()
+  const { data: todos, mutate: mutateTodos } = useGetTodos()
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
   const onDelete = async (id: string): Promise<boolean> => {
-    const removed = labels?.find((label) => label.id === id)
+    const removedIndex = labels?.findIndex((label) => label.id === id) ?? -1
+    const removed = labels?.[removedIndex]
+    const affectedTodoIds = new Set(
+      todos?.filter((todo) => todo.labelId === id).map((todo) => todo.id)
+    )
     setDeletingId(id)
 
     try {
@@ -31,10 +35,25 @@ function useDeleteLabel() {
       return true
     } catch {
       if (removed) {
-        await mutate((current) => [removed, ...(current ?? [])], {
-          revalidate: false,
-        })
+        await mutate(
+          (current) => {
+            const next = [...(current ?? [])]
+            next.splice(Math.min(removedIndex, next.length), 0, removed)
+            return next
+          },
+          { revalidate: false }
+        )
       }
+      // Only restore todos the user hasn't relabeled in the meantime.
+      await mutateTodos(
+        (current) =>
+          current?.map((todo) =>
+            affectedTodoIds.has(todo.id) && todo.labelId === null
+              ? { ...todo, labelId: id }
+              : todo
+          ),
+        { revalidate: false }
+      )
       toast.error("Failed to delete label. Is the backend running?")
       return false
     } finally {

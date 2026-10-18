@@ -6,7 +6,10 @@ import type { Label } from "@/src/lib/api/generated/model"
 
 const getLabels = vi.hoisted(() => vi.fn())
 const deleteLabelsId = vi.hoisted(() => vi.fn())
-const todos = vi.hoisted(() => ({ mutate: vi.fn(), data: [] }))
+const todos = vi.hoisted(() => ({
+  mutate: vi.fn(),
+  data: [] as Array<{ id: string; labelId: string | null }>,
+}))
 
 vi.mock("@/src/lib/api/generated/client", async () => {
   const useSwr = (await import("swr")).default
@@ -45,6 +48,7 @@ const home: Label = {
 beforeEach(() => {
   vi.clearAllMocks()
   getLabels.mockResolvedValue([work, home])
+  todos.data = []
 })
 
 async function renderDelete() {
@@ -100,5 +104,48 @@ describe("useDeleteLabel", () => {
     expect(toastMock.error).toHaveBeenCalledWith(
       "Failed to delete label. Is the backend running?"
     )
+  })
+
+  it("restores the label at its original position on failure", async () => {
+    deleteLabelsId.mockRejectedValue(new Error("boom"))
+    const { result } = await renderDelete()
+
+    await act(async () => {
+      await result.current.remove.onDelete("2")
+    })
+
+    expect(result.current.labels.data).toEqual([work, home])
+  })
+
+  it("restores the label on affected todos the user hasn't relabeled", async () => {
+    deleteLabelsId.mockRejectedValue(new Error("boom"))
+    todos.data = [
+      { id: "t1", labelId: "1" },
+      { id: "t2", labelId: "1" },
+      { id: "t3", labelId: "2" },
+    ]
+    const { result } = await renderDelete()
+
+    await act(async () => {
+      await result.current.remove.onDelete("1")
+    })
+
+    const restore = todos.mutate.mock.calls[1]?.[0] as (
+      current: Array<{ id: string; labelId: string | null }>
+    ) => Array<{ id: string; labelId: string | null }>
+    // t2 was relabeled while the request was in flight; t4 never had it.
+    expect(
+      restore([
+        { id: "t1", labelId: null },
+        { id: "t2", labelId: "2" },
+        { id: "t3", labelId: "2" },
+        { id: "t4", labelId: null },
+      ])
+    ).toEqual([
+      { id: "t1", labelId: "1" },
+      { id: "t2", labelId: "2" },
+      { id: "t3", labelId: "2" },
+      { id: "t4", labelId: null },
+    ])
   })
 })
