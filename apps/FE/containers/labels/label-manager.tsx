@@ -146,19 +146,15 @@ function LabelManager() {
 
       {labelToDelete && (
         <DeleteLabelDialog
+          open={deleteDialogOpen}
           labelName={labelToDelete.name}
           affectedTodos={countTodosUsing(labelToDelete.id)}
           onConfirm={() => {
             setDeleteDialogOpen(false)
             void onDelete(labelToDelete.id)
           }}
-          open={deleteDialogOpen}
-          onOpenChange={(isOpen) => {
-            if (!isOpen) setDeleteDialogOpen(false)
-          }}
-          onOpenChangeComplete={(isOpen) => {
-            if (!isOpen) setLabelToDelete(null)
-          }}
+          onClose={() => setDeleteDialogOpen(false)}
+          onClosed={() => setLabelToDelete(null)}
         />
       )}
     </>

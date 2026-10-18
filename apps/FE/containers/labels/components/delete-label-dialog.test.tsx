@@ -1,44 +1,33 @@
-import { render, screen } from "@testing-library/react"
+import { render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { afterEach, describe, expect, it, vi } from "vitest"
 
-import { Button } from "@/components/ui/button"
-
 import { DeleteLabelDialog } from "./delete-label-dialog"
 
-function renderDialog(
-  props: Partial<React.ComponentProps<typeof DeleteLabelDialog>> = {}
-) {
-  const onConfirm = vi.fn()
-  render(
-    <DeleteLabelDialog
-      labelName="Work"
-      affectedTodos={0}
-      onConfirm={onConfirm}
-      {...props}
-    >
-      <Button>Open</Button>
-    </DeleteLabelDialog>
-  )
-  return { onConfirm, user: userEvent.setup() }
-}
+type Props = React.ComponentProps<typeof DeleteLabelDialog>
 
-function renderControlledDialog(
-  props: Partial<React.ComponentProps<typeof DeleteLabelDialog>> = {}
-) {
+function renderDialog(props: Partial<Props> = {}) {
   const onConfirm = vi.fn()
-  const onOpenChange = vi.fn()
-  render(
-    <DeleteLabelDialog
-      labelName="Work"
-      affectedTodos={0}
-      onConfirm={onConfirm}
-      open
-      onOpenChange={onOpenChange}
-      {...props}
-    />
-  )
-  return { onConfirm, onOpenChange, user: userEvent.setup() }
+  const onClose = vi.fn()
+  const onClosed = vi.fn()
+  const baseProps: Props = {
+    open: true,
+    labelName: "Work",
+    affectedTodos: 0,
+    onConfirm,
+    onClose,
+    onClosed,
+    ...props,
+  }
+  const { rerender } = render(<DeleteLabelDialog {...baseProps} />)
+  return {
+    onConfirm,
+    onClose,
+    onClosed,
+    rerender: (next: Partial<Props>) =>
+      rerender(<DeleteLabelDialog {...baseProps} {...next} />),
+    user: userEvent.setup(),
+  }
 }
 
 // jsdom has no Web Animations API, so Base UI unmounts a closing dialog at once.
@@ -58,11 +47,10 @@ describe("DeleteLabelDialog", () => {
   it("warns about unassigning and confirms deletion", async () => {
     const { onConfirm, user } = renderDialog({ affectedTodos: 3 })
 
-    await user.click(screen.getByRole("button", { name: "Open" }))
-
     expect(
       await screen.findByText(/permanently deletes the label/i)
     ).toBeInTheDocument()
+    expect(screen.getByText(/delete “work”\?/i)).toBeInTheDocument()
     expect(screen.getByText(/applied to 3 todos/i)).toBeInTheDocument()
 
     await user.click(screen.getByRole("button", { name: "Delete label" }))
@@ -70,9 +58,7 @@ describe("DeleteLabelDialog", () => {
   })
 
   it("shows an info notice when no todos use the label", async () => {
-    const { user } = renderDialog({ affectedTodos: 0 })
-
-    await user.click(screen.getByRole("button", { name: "Open" }))
+    renderDialog({ affectedTodos: 0 })
 
     expect(
       await screen.findByText(/no todos use this label/i)
@@ -80,9 +66,7 @@ describe("DeleteLabelDialog", () => {
   })
 
   it("omits the usage notice when the count is unknown", async () => {
-    const { user } = renderDialog({ affectedTodos: undefined })
-
-    await user.click(screen.getByRole("button", { name: "Open" }))
+    renderDialog({ affectedTodos: undefined })
 
     expect(
       await screen.findByText(/permanently deletes the label/i)
@@ -92,90 +76,79 @@ describe("DeleteLabelDialog", () => {
   })
 
   it("uses singular copy when one todo uses the label", async () => {
-    const { user } = renderDialog({ affectedTodos: 1 })
-
-    await user.click(screen.getByRole("button", { name: "Open" }))
+    renderDialog({ affectedTodos: 1 })
 
     expect(await screen.findByText(/applied to 1 todo\b/i)).toBeInTheDocument()
   })
 
-  it("closes without deleting on cancel", async () => {
-    const { onConfirm, user } = renderDialog()
+  it("renders nothing while closed", () => {
+    renderDialog({ open: false })
 
-    await user.click(screen.getByRole("button", { name: "Open" }))
+    expect(screen.queryByText(/permanently deletes the label/i)).toBeNull()
+  })
+
+  it("requests closing without deleting on cancel", async () => {
+    const { onConfirm, onClose, user } = renderDialog()
+
     await user.click(await screen.findByRole("button", { name: "Cancel" }))
 
+    expect(onClose).toHaveBeenCalledTimes(1)
     expect(onConfirm).not.toHaveBeenCalled()
   })
 
-  it("opens immediately when controlled with open prop", async () => {
-    renderControlledDialog()
+  it("requests closing on Escape", async () => {
+    const { onClose, user } = renderDialog()
+    await screen.findByText(/permanently deletes the label/i)
 
-    expect(
-      await screen.findByText(/permanently deletes the label/i)
-    ).toBeInTheDocument()
+    await user.keyboard("{Escape}")
+
+    expect(onClose).toHaveBeenCalledTimes(1)
   })
 
-  it("calls onOpenChange when cancel is clicked in controlled mode", async () => {
-    const { onOpenChange, user } = renderControlledDialog()
+  it("reports when it has finished closing", async () => {
+    const { onClosed, rerender } = renderDialog()
+    await screen.findByText(/permanently deletes the label/i)
 
-    await user.click(await screen.findByRole("button", { name: "Cancel" }))
+    rerender({ open: false })
 
-    expect(onOpenChange).toHaveBeenCalledWith(false, expect.anything())
-  })
-
-  it("confirms deletion in controlled mode", async () => {
-    const { onConfirm, user } = renderControlledDialog()
-
-    await user.click(
-      await screen.findByRole("button", { name: "Delete label" })
-    )
-
-    expect(onConfirm).toHaveBeenCalledTimes(1)
+    await waitFor(() => expect(onClosed).toHaveBeenCalledTimes(1))
   })
 
   it.each([
     ["confirmed", "Delete label"],
     ["cancelled", "Cancel"],
-  ])(
-    "keeps the affected count steady while closing when %s",
-    async (_, buttonName) => {
-      const user = userEvent.setup()
-      const { rerender } = render(
-        <DeleteLabelDialog
-          labelName="Work"
-          affectedTodos={3}
-          onConfirm={vi.fn()}
-          open
-        />
-      )
+  ])("keeps the count steady while closing when %s", async (_, buttonName) => {
+    const { rerender, user } = renderDialog({ affectedTodos: 3 })
 
-      const button = await screen.findByRole("button", { name: buttonName })
-      holdCloseAnimation()
-      await user.click(button)
-      rerender(
-        <DeleteLabelDialog
-          labelName="Work"
-          affectedTodos={0}
-          onConfirm={vi.fn()}
-          open={false}
-        />
-      )
+    const button = await screen.findByRole("button", { name: buttonName })
+    holdCloseAnimation()
+    await user.click(button)
+    rerender({ open: false, affectedTodos: 0 })
 
-      expect(screen.getByText(/applied to 3 todos/i)).toBeInTheDocument()
-      expect(screen.queryByText(/no todos use this label/i)).toBeNull()
-    }
-  )
+    expect(screen.getByText(/applied to 3 todos/i)).toBeInTheDocument()
+    expect(screen.queryByText(/no todos use this label/i)).toBeNull()
+  })
 
-  it("shows the live count while open", async () => {
-    const props = { labelName: "Work", onConfirm: vi.fn(), open: true }
-    const { rerender } = render(
-      <DeleteLabelDialog {...props} affectedTodos={3} />
-    )
+  it("shows the live content while open", async () => {
+    const { rerender } = renderDialog({ affectedTodos: 3 })
     expect(await screen.findByText(/applied to 3 todos/i)).toBeInTheDocument()
 
-    rerender(<DeleteLabelDialog {...props} affectedTodos={1} />)
+    rerender({ labelName: "Home", affectedTodos: 1 })
 
+    expect(screen.getByText(/delete “home”\?/i)).toBeInTheDocument()
+    expect(screen.getByText(/applied to 1 todo\b/i)).toBeInTheDocument()
+  })
+
+  it("shows the new label when reopened during the close animation", async () => {
+    const { rerender, user } = renderDialog({ affectedTodos: 3 })
+
+    const cancel = await screen.findByRole("button", { name: "Cancel" })
+    holdCloseAnimation()
+    await user.click(cancel)
+    rerender({ open: false, affectedTodos: undefined })
+    rerender({ open: true, labelName: "Home", affectedTodos: 1 })
+
+    expect(screen.getByText(/delete “home”\?/i)).toBeInTheDocument()
     expect(screen.getByText(/applied to 1 todo\b/i)).toBeInTheDocument()
   })
 })

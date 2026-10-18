@@ -13,52 +13,46 @@ import {
   AlertDialogHeader,
   AlertDialogMedia,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 
 import { AffectedTodosNotice } from "./affected-todos-notice"
 
 type DeleteLabelDialogProps = {
+  open: boolean
   labelName: string
   affectedTodos: number | undefined
   onConfirm: () => void
-  open?: boolean
-  onOpenChange?: React.ComponentProps<typeof AlertDialog>["onOpenChange"]
-  onOpenChangeComplete?: (open: boolean) => void
-  children?: React.ReactElement
+  // Cancel / Esc: the user asked to close without confirming.
+  onClose: () => void
+  // The close animation has finished.
+  onClosed: () => void
 }
 
 function DeleteLabelDialog({
+  open,
   labelName,
   affectedTodos,
   onConfirm,
-  open,
-  onOpenChange,
-  onOpenChangeComplete,
-  children,
+  onClose,
+  onClosed,
 }: DeleteLabelDialogProps) {
-  const isControlled = open !== undefined
-  // Keeps the count steady while the dialog animates closed: the caller's live
-  // count can change mid-animation (e.g. an optimistic delete drops it to 0).
   const [frozenCount, setFrozenCount] = useState<number | null>(null)
-  const shownCount = frozenCount ?? affectedTodos
+  const shownCount = open ? affectedTodos : (frozenCount ?? affectedTodos)
 
   const freezeCount = () => setFrozenCount(affectedTodos ?? null)
 
   return (
     <AlertDialog
       open={open}
-      onOpenChange={(isOpen, eventDetails) => {
-        if (isOpen) setFrozenCount(null)
-        else freezeCount()
-        onOpenChange?.(isOpen, eventDetails)
+      onOpenChange={(isOpen) => {
+        if (isOpen) return
+        freezeCount()
+        onClose()
       }}
       onOpenChangeComplete={(isOpen) => {
-        if (!isOpen) setFrozenCount(null)
-        onOpenChangeComplete?.(isOpen)
+        if (!isOpen) onClosed()
       }}
     >
-      {!isControlled && children && <AlertDialogTrigger render={children} />}
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogMedia>
@@ -75,7 +69,6 @@ function DeleteLabelDialog({
           <AlertDialogAction
             variant="destructive"
             onClick={() => {
-              // Confirm closes via the parent's `open` prop, not onOpenChange.
               freezeCount()
               onConfirm()
             }}
