@@ -31,11 +31,12 @@ function LabelManager() {
   const isDesktop = useIsDesktop()
   const { data: labels, error, isLoading } = useLabels()
   const { data: todos } = useGetTodos()
-  const { onCreate, isSubmitting, failed } = useCreateLabel()
+  const { onCreate, revealLabel, isSubmitting, failed } = useCreateLabel()
   const { onRename, renamingId } = useRenameLabel()
   const { onDelete, deletingId } = useDeleteLabel()
   const { applyLabel } = useApplyLabelToTodo()
   const [deletingLabel, setDeletingLabel] = useState<Label | null>(null)
+  const [isApplying, setIsApplying] = useState(false)
 
   const selectedLabelId = useMemo(() => {
     if (!selectedTodo) return undefined
@@ -60,13 +61,23 @@ function LabelManager() {
 
   const handleCreate = useCallback(
     async (name: string) => {
-      const created = await onCreate(name)
-      if (created && selectedTodo) {
-        await applyLabel(selectedTodo.todoId, created.id)
+      if (!selectedTodo) {
+        const created = await onCreate(name)
+        return created !== null
       }
-      return created !== null
+      const created = await onCreate(name, { reveal: false })
+      if (!created) return false
+
+      setIsApplying(true)
+      try {
+        await applyLabel(selectedTodo.todoId, created.id)
+      } finally {
+        setIsApplying(false)
+      }
+      await revealLabel(created)
+      return true
     },
-    [onCreate, applyLabel, selectedTodo]
+    [onCreate, revealLabel, applyLabel, selectedTodo]
   )
 
   const handleDeleteRequest = useCallback(
@@ -104,7 +115,7 @@ function LabelManager() {
               requiredMessage="Name is required"
               failureMessage="Failed to save label. Is the backend running?"
               onSubmit={handleCreate}
-              isSubmitting={isSubmitting}
+              isSubmitting={isSubmitting || isApplying}
               failed={failed}
               mapError={(error) =>
                 isNameConflict(error)

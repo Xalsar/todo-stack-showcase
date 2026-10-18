@@ -107,4 +107,62 @@ describe("useCreateLabel", () => {
       "Failed to create label. Is the backend running?"
     )
   })
+
+  it("skips the optimistic insert when reveal is false", async () => {
+    const created: Label = {
+      id: "3",
+      name: "Errands",
+      createdAt: "2024-01-03T00:00:00.000Z",
+      updatedAt: "2024-01-03T00:00:00.000Z",
+    }
+    postLabels.mockResolvedValue(created)
+    const { result } = await renderCreate()
+
+    let createdResult: Label | null = null
+    await act(async () => {
+      createdResult = await result.current.create.onCreate("Errands", {
+        reveal: false,
+      })
+    })
+
+    expect(createdResult).toEqual(created)
+    expect(postLabels).toHaveBeenCalledWith({ name: "Errands" })
+    expect(result.current.labels.data).toEqual([work, home])
+    expect(result.current.create.failed).toBe(false)
+  })
+
+  it("revealLabel appends the created label to the list", async () => {
+    const created: Label = {
+      id: "3",
+      name: "Errands",
+      createdAt: "2024-01-03T00:00:00.000Z",
+      updatedAt: "2024-01-03T00:00:00.000Z",
+    }
+    const { result } = await renderCreate()
+
+    await act(async () => {
+      await result.current.create.revealLabel(created)
+    })
+
+    expect(result.current.labels.data).toEqual([work, home, created])
+  })
+
+  it("leaves the list untouched on failure when reveal is false", async () => {
+    postLabels.mockRejectedValue(new Error("boom"))
+    const { result } = await renderCreate()
+
+    let createdResult: Label | null = null
+    await act(async () => {
+      createdResult = await result.current.create.onCreate("Errands", {
+        reveal: false,
+      })
+    })
+
+    expect(createdResult).toBeNull()
+    expect(result.current.labels.data).toEqual([work, home])
+    expect(result.current.create.failed).toBe(true)
+    expect(toastMock.error).toHaveBeenCalledWith(
+      "Failed to create label. Is the backend running?"
+    )
+  })
 })
